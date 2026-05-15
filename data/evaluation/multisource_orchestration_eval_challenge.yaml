@@ -1,0 +1,342 @@
+version: 1
+description: >
+  Harder multi-source orchestration benchmark for MedLabelIQ.
+  This challenge set stresses source routing, brand/generic normalization,
+  unsupported identity claims, brand-name clinical queries, and mixed-source
+  questions that combine RxNorm identity intent with DailyMed clinical intent.
+
+cases:
+  # ---------------------------------------------------------------------------
+  # RXNORM IDENTITY — SUPPORTED
+  # ---------------------------------------------------------------------------
+
+  - id: rxnorm_eliquis_another_name_for_apixaban
+    query: Is Eliquis another name for apixaban?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - same ingredient concept
+      - apixaban
+    minimum_citations: 2
+    citation_prefix: R
+    minimum_identity_evidence: 2
+    maximum_label_evidence: 0
+
+  - id: rxnorm_glucophage_equivalent_to_metformin
+    query: Is Glucophage equivalent to metformin?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - same ingredient concept
+      - metformin
+    minimum_citations: 2
+    citation_prefix: R
+    minimum_identity_evidence: 2
+    maximum_label_evidence: 0
+
+  - id: rxnorm_glucophage_active_ingredient
+    query: What is the active ingredient of Glucophage?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - metformin
+      - active ingredient
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_metformin_brand_name_lookup
+    query: What is the brand name of metformin?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - Glucophage
+      - brand-name
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_apixaban_not_brand_name
+    query: Is apixaban a brand name?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - not a brand-name
+      - non-brand
+      - IN
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_eliquis_not_same_as_glucophage
+    query: Is Eliquis the same as Glucophage?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - "No"
+      - do not share
+      - not share
+    minimum_citations: 2
+    citation_prefix: R
+    minimum_identity_evidence: 2
+    maximum_label_evidence: 0
+
+  # ---------------------------------------------------------------------------
+  # RXNORM IDENTITY — SHOULD ABSTAIN
+  # ---------------------------------------------------------------------------
+
+  - id: rxnorm_fake_drug_generic_name_abstain
+    query: What is the generic name of ZorvamineX?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_fake_equivalence_abstain
+    query: Is ZorvamineX the same as apixaban?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    citation_prefix: R
+    minimum_identity_evidence: 2
+    maximum_label_evidence: 0
+
+  # ---------------------------------------------------------------------------
+  # DAILYMED LABEL PATH — BRAND NAMES / NORMALIZATION
+  # ---------------------------------------------------------------------------
+
+  - id: label_eliquis_bleeding_risk_answered
+    query: Can Eliquis increase the risk of serious bleeding?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: candidate_family_group_unfiltered
+    expected_response_any:
+      - bleeding
+      - serious bleeding
+      - risk
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_glucophage_lactic_acidosis_answered
+    query: Can Glucophage cause lactic acidosis?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: candidate_family_group_unfiltered
+    expected_response_any:
+      - lactic acidosis
+      - metformin-associated
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_glucophage_used_for_answered
+    query: What is Glucophage used for?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - type 2 diabetes
+      - glycemic control
+      - diabetes
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_eliquis_aspirin_interaction_answered
+    query: Can Eliquis be taken with aspirin?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: drug_interactions
+    expected_response_any:
+      - aspirin
+      - bleeding
+      - bleeding risk
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_glucophage_migraine_abstain
+    query: Does Glucophage cure migraine headaches?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
+
+  - id: label_eliquis_pneumonia_abstain
+    query: Does Eliquis cure pneumonia?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
+
+  # ---------------------------------------------------------------------------
+  # DAILYMED LABEL PATH — OTHER HARDER CLINICAL FORMULATIONS
+  # ---------------------------------------------------------------------------
+
+  - id: label_apixaban_combined_with_aspirin_answered
+    query: Can apixaban be combined with aspirin?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: drug_interactions
+    expected_response_any:
+      - aspirin
+      - bleeding
+      - bleeding risk
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_omeprazole_dose_question_answered
+    query: What dose of omeprazole is described in the label?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: dosage_and_administration
+    expected_response_any:
+      - dose
+      - mg
+      - daily
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  # ---------------------------------------------------------------------------
+  # MIXED-SOURCE STRESS CASES
+  #
+  # These combine RxNorm identity intent with DailyMed clinical intent.
+  # Current source_router should mark them as ambiguous_mixed_source and select
+  # DailyMed as the fallback execution branch. We conservatively expect
+  # insufficient_evidence unless the system can fully support the combined claim.
+  # ---------------------------------------------------------------------------
+
+  - id: mixed_glucophage_same_as_metformin_and_used_for
+    query: Is Glucophage the same as metformin and what is it used for?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: ambiguous_mixed_source
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
+
+  - id: mixed_eliquis_same_as_apixaban_and_stroke_prevention
+    query: Is Eliquis the same as apixaban and can it prevent stroke?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: ambiguous_mixed_source
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
+
+  - id: mixed_glucophage_brand_name_and_used_for
+    query: Is Glucophage a brand name and what is it used for?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: ambiguous_mixed_source
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0

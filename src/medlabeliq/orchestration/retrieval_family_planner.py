@@ -91,6 +91,24 @@ SINGLE_FAMILY_SIGNAL_SPECS: list[SignalSpec] = [
     SignalSpec(
         family="indications_and_usage",
         intent="indication_or_use",
+        signal="cure",
+        weight=3,
+    ),
+    SignalSpec(
+        family="indications_and_usage",
+        intent="indication_or_use",
+        signal="prevent",
+        weight=3,
+    ),
+    SignalSpec(
+        family="indications_and_usage",
+        intent="indication_or_use",
+        signal="prevention",
+        weight=3,
+    ),
+    SignalSpec(
+        family="indications_and_usage",
+        intent="indication_or_use",
         signal="what is",
         weight=1,
     ),
@@ -436,6 +454,41 @@ def detect_family_group(
     ]
 
 
+def detect_safety_group_signals(
+    query: str,
+) -> list[str]:
+    """
+    Detect safety-warning intent.
+
+    This extends exact phrase matching with conservative regex patterns for
+    common medication-risk questions such as:
+    - Can Glucophage cause lactic acidosis?
+    - Could metformin cause dangerous acidosis?
+    - Does apixaban cause bleeding?
+    """
+    exact_signals = detect_family_group(
+        query=query,
+        signals=SAFETY_GROUP_SIGNALS,
+    )
+
+    normalized_query = normalize_text(query)
+
+    regex_signals: list[str] = []
+
+    cause_pattern = re.compile(
+        r"\b(?:can|could|does|do|may|might|will|would)\s+"
+        r"(?:[a-z0-9]+\s+){0,4}"
+        r"cause\b"
+    )
+
+    if cause_pattern.search(normalized_query):
+        regex_signals.append("__modal_drug_cause_pattern__")
+
+    return [
+        *exact_signals,
+        *regex_signals,
+    ]
+
 # =============================================================================
 # Planner
 # =============================================================================
@@ -462,10 +515,7 @@ def plan_retrieval_family(
 
     single_family_matches = score_single_family_matches(query)
 
-    safety_signals = detect_family_group(
-        query=query,
-        signals=SAFETY_GROUP_SIGNALS,
-    )
+    safety_signals = detect_safety_group_signals(query)
 
     population_signals = detect_family_group(
         query=query,

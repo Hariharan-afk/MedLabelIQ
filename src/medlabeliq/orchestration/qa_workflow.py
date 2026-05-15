@@ -163,6 +163,27 @@ def answer_query_with_drug_resolution(
         drug_resolution=drug_resolution,
         drug_mention_detection=drug_mention_detection,
     )
+    
+    if source_plan.status == "ambiguous_mixed_source":
+        empty_pack = build_empty_evidence_pack(
+            query=query,
+            retrieval_family=effective_retrieval_family,
+        )
+
+        generated = build_deterministic_insufficient_answer(
+            empty_pack,
+        )
+
+        return QAWorkflowResult(
+            generated=generated,
+            drug_resolution=drug_resolution,
+            drug_mention_detection=drug_mention_detection,
+            retrieval_drug=retrieval_drug,
+            family_plan=family_plan,
+            retrieval_family=effective_retrieval_family,
+            source_plan=source_plan,
+            identity_evidence=None,
+        )
 
     if (
         source_plan.status == "routed_rxnorm_identity"

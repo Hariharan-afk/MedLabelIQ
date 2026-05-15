@@ -66,3 +66,34 @@ def test_explicit_family_disables_auto_planning() -> None:
 
     assert plan.status == "not_attempted_explicit_family_present"
     assert plan.planned_family is None
+
+
+def test_safety_cause_pattern_routes_to_safety_group() -> None:
+    plan = plan_retrieval_family(
+        "Can Glucophage cause lactic acidosis?"
+    )
+
+    assert plan.status == "candidate_family_group_unfiltered"
+    assert plan.intent == "safety_warning"
+    assert plan.planned_family is None
+    assert "warnings_and_precautions" in plan.candidate_families
+
+
+def test_cure_query_routes_to_indications_family() -> None:
+    plan = plan_retrieval_family(
+        "Does Eliquis cure pneumonia?"
+    )
+
+    assert plan.status == "routed_single_family"
+    assert plan.intent == "indication_or_use"
+    assert plan.planned_family == "indications_and_usage"
+
+
+def test_prevent_query_routes_to_indications_family() -> None:
+    plan = plan_retrieval_family(
+        "Can Eliquis prevent stroke?"
+    )
+
+    assert plan.status == "routed_single_family"
+    assert plan.intent == "indication_or_use"
+    assert plan.planned_family == "indications_and_usage"
