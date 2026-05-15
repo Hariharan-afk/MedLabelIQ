@@ -1,0 +1,104 @@
+version: 1
+description: >
+  Smoke retrieval evaluation set for MedLabelIQ Phase 1.
+  These queries test whether section-aware PostgreSQL lexical retrieval can find
+  relevant DailyMed SPL chunks using drug and optional retrieval-family filters.
+
+top_k: 5
+
+cases:
+  - id: metformin_lactic_acidosis_warning
+    query: lactic acidosis
+    drug: metformin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Lactic Acidosis]
+    expected_text_any: [metformin-associated lactic acidosis]
+
+  - id: apixaban_bleeding_warning
+    query: bleeding risk
+    drug: apixaban
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Bleeding]
+    expected_text_any: [risk of bleeding]
+
+  - id: acetaminophen_liver_warning
+    query: liver warning
+    drug: acetaminophen
+    search_family: null
+    expected_families: [warnings]
+    expected_heading_any: [WARNINGS]
+    expected_text_any: [Liver warning]
+
+  - id: sertraline_suicidal_thoughts_boxed_warning
+    query: suicidal thoughts
+    drug: sertraline
+    search_family: boxed_warning
+    expected_families: [boxed_warning]
+    expected_heading_any: [SUICIDAL THOUGHTS]
+    expected_text_any: [suicidal thoughts]
+
+  - id: albuterol_paradoxical_bronchospasm
+    query: bronchospasm
+    drug: albuterol
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Paradoxical Bronchospasm]
+    expected_text_any: [paradoxical bronchospasm]
+
+  - id: omeprazole_acid_mediated_gerd
+    query: acid-mediated GERD
+    drug: omeprazole
+    search_family: indications_and_usage
+    expected_families: [indications_and_usage]
+    expected_heading_any: [Acid-Mediated GERD]
+    expected_text_any: [acid-mediated GERD]
+
+  - id: lisinopril_angioedema
+    query: angioedema
+    drug: lisinopril
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Angioedema]
+    expected_text_any: [angioedema]
+
+  - id: atorvastatin_rhabdomyolysis
+    query: rhabdomyolysis
+    drug: atorvastatin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Myopathy, Rhabdomyolysis]
+    expected_text_any: [rhabdomyolysis]
+
+  - id: methotrexate_embryo_fetal_toxicity
+    query: embryo-fetal toxicity
+    drug: methotrexate
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions, boxed_warning]
+    expected_heading_any: [Embryo-Fetal Toxicity, WARNING]
+    expected_text_any: [embryo-fetal toxicity]
+
+  - id: isotretinoin_pregnancy
+    query: pregnancy
+    drug: isotretinoin
+    search_family: boxed_warning
+    expected_families: [boxed_warning]
+    expected_heading_any: [WARNING]
+    expected_text_any: [pregnancy, birth defects]
+
+  - id: amoxicillin_hypersensitivity
+    query: hypersensitivity reactions
+    drug: amoxicillin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions, contraindications]
+    expected_heading_any: [Hypersensitivity, WARNINGS]
+    expected_text_any: [hypersensitivity]
+
+  - id: ibuprofen_gastrointestinal_bleeding
+    query: stomach bleeding
+    drug: ibuprofen
+    search_family: warnings
+    expected_families: [warnings]
+    expected_heading_any: [WARNINGS]
+    expected_text_any: [stomach bleeding, bleeding]

@@ -1,0 +1,213 @@
+version: 1
+description: >
+  Harder end-to-end grounded QA benchmark for MedLabelIQ.
+  This set includes paraphrased supported questions, clinically realistic wording,
+  same-drug semantic confusion cases, and unsupported claims that should trigger abstention.
+
+cases:
+  # ---------------------------------------------------------------------------
+  # ANSWERABLE CASES
+  # ---------------------------------------------------------------------------
+
+  - id: metformin_kidney_problem_lactic_acidosis
+    query: Why can metformin be more dangerous for someone with serious kidney problems?
+    drug: metformin
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - renal impairment
+      - kidney
+      - lactic acidosis
+    expected_cited_heading_any:
+      - Lactic Acidosis
+    minimum_citations: 1
+
+  - id: albuterol_breathing_worse_after_use
+    query: Can albuterol suddenly make breathing worse right after it is used?
+    drug: albuterol
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - paradoxical bronchospasm
+      - breathing worse
+      - life threatening
+    expected_cited_heading_any:
+      - Paradoxical Bronchospasm
+    minimum_citations: 1
+
+  - id: omeprazole_reflux_esophagus_healing
+    query: Does omeprazole help heal reflux-related damage to the esophagus?
+    drug: omeprazole
+    family: indications_and_usage
+    expected_status: answered
+    expected_response_any:
+      - erosive esophagitis
+      - acid-mediated GERD
+      - GERD
+    expected_cited_heading_any:
+      - Erosive Esophagitis
+      - Acid-Mediated GERD
+    minimum_citations: 1
+
+  - id: apixaban_stopping_too_early
+    query: What does the label warn about if apixaban is stopped too early?
+    drug: apixaban
+    family: null
+    expected_status: answered
+    expected_response_any:
+      - thrombotic
+      - blood clots
+      - premature discontinuation
+    expected_cited_heading_any:
+      - WARNING
+      - Premature Discontinuation
+    minimum_citations: 1
+
+  - id: methotrexate_pregnancy_fetal_harm
+    query: Can methotrexate harm a developing baby during pregnancy?
+    drug: methotrexate
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - embryo-fetal toxicity
+      - fetal harm
+      - pregnancy
+    expected_cited_heading_any:
+      - Embryo-Fetal Toxicity
+    minimum_citations: 1
+
+  - id: isotretinoin_low_dose_pregnancy
+    query: Is isotretinoin considered safe in pregnancy if the dose is very low?
+    drug: isotretinoin
+    family: boxed_warning
+    expected_status: answered
+    expected_response_any:
+      - contraindicated
+      - pregnancy
+      - birth defects
+    expected_cited_heading_any:
+      - EMBRYO-FETAL TOXICITY
+      - PREGNANCY
+    minimum_citations: 1
+
+  - id: atorvastatin_rhabdomyolysis_semantic
+    query: Can atorvastatin lead to a serious muscle injury like rhabdomyolysis?
+    drug: atorvastatin
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - rhabdomyolysis
+      - myopathy
+      - muscle
+    expected_cited_heading_any:
+      - Myopathy
+      - Rhabdomyolysis
+    minimum_citations: 1
+
+  - id: lisinopril_face_tongue_swelling
+    query: Can lisinopril cause swelling of the face, lips, tongue, or throat?
+    drug: lisinopril
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - angioedema
+      - swelling
+    expected_cited_heading_any:
+      - Angioedema
+    minimum_citations: 1
+
+  - id: amoxicillin_severe_skin_reaction
+    query: Can amoxicillin cause a severe skin reaction?
+    drug: amoxicillin
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - severe cutaneous adverse reactions
+      - skin reaction
+      - severe skin
+    expected_cited_heading_any:
+      - Severe Cutaneous Adverse Reactions
+    minimum_citations: 1
+
+  - id: sertraline_young_adult_suicidality_warning
+    query: Does sertraline carry a warning about suicidal thoughts in young adults?
+    drug: sertraline
+    family: null
+    expected_status: answered
+    expected_response_any:
+      - suicidal thoughts
+      - young adult
+      - suicidal thoughts and behaviors
+    expected_cited_heading_any:
+      - SUICIDAL THOUGHTS
+    minimum_citations: 1
+
+  # ---------------------------------------------------------------------------
+  # ABSTENTION CASES
+  # ---------------------------------------------------------------------------
+
+  - id: metformin_guaranteed_weight_loss_abstain
+    query: Does metformin guarantee weight loss?
+    drug: metformin
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: apixaban_bacterial_infection_abstain
+    query: Does apixaban treat bacterial infections?
+    drug: apixaban
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: albuterol_pneumonia_cure_abstain
+    query: Does albuterol cure pneumonia?
+    drug: albuterol
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: omeprazole_lactose_intolerance_abstain
+    query: Does omeprazole cure lactose intolerance?
+    drug: omeprazole
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: atorvastatin_relieve_muscle_cramps_abstain
+    query: Does atorvastatin relieve muscle cramps?
+    drug: atorvastatin
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: isotretinoin_whiten_teeth_abstain
+    query: Does isotretinoin whiten teeth?
+    drug: isotretinoin
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0

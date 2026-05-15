@@ -1,0 +1,152 @@
+version: 1
+description: >
+  Smoke evaluation set for MedLabelIQ grounded answer generation.
+  This benchmark checks end-to-end QA behavior:
+  retrieval, evidence selection, Groq generation, citations, and abstention.
+
+cases:
+  - id: metformin_lactic_acidosis_answered
+    query: Can metformin cause dangerous acid buildup in the blood?
+    drug: metformin
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - lactic acidosis
+      - elevated blood lactate
+      - acid buildup
+    expected_cited_heading_any:
+      - Lactic Acidosis
+    minimum_citations: 1
+
+  - id: apixaban_bleeding_answered
+    query: Can apixaban increase the risk of serious bleeding?
+    drug: apixaban
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - bleeding
+      - risk of bleeding
+    expected_cited_heading_any:
+      - Bleeding
+    minimum_citations: 1
+
+  - id: acetaminophen_liver_damage_answered
+    query: Can taking too much acetaminophen damage the liver?
+    drug: acetaminophen
+    family: null
+    expected_status: answered
+    expected_response_any:
+      - liver damage
+      - liver warning
+    expected_cited_heading_any:
+      - WARNINGS
+    minimum_citations: 1
+
+  - id: sertraline_suicidal_thoughts_answered
+    query: Can sertraline increase suicidal thoughts in younger patients?
+    drug: sertraline
+    family: null
+    expected_status: answered
+    expected_response_any:
+      - suicidal thoughts
+      - suicidal thoughts and behaviors
+    expected_cited_heading_any:
+      - SUICIDAL THOUGHTS
+    minimum_citations: 1
+
+  - id: omeprazole_gerd_indication_answered
+    query: Is omeprazole used for reflux-related erosive esophagitis?
+    drug: omeprazole
+    family: indications_and_usage
+    expected_status: answered
+    expected_response_any:
+      - erosive esophagitis
+      - acid-mediated GERD
+      - GERD
+    expected_cited_heading_any:
+      - Erosive Esophagitis
+      - Acid-Mediated GERD
+    minimum_citations: 1
+
+  - id: lisinopril_angioedema_answered
+    query: Can lisinopril cause swelling of the face, lips, tongue, or throat?
+    drug: lisinopril
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - angioedema
+      - swelling
+    expected_cited_heading_any:
+      - Angioedema
+    minimum_citations: 1
+
+  - id: atorvastatin_rhabdomyolysis_answered
+    query: Can atorvastatin cause severe muscle breakdown?
+    drug: atorvastatin
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - rhabdomyolysis
+      - myopathy
+      - muscle breakdown
+    expected_cited_heading_any:
+      - Myopathy
+      - Rhabdomyolysis
+    minimum_citations: 1
+
+  - id: methotrexate_fetal_harm_answered
+    query: Can methotrexate harm an unborn baby?
+    drug: methotrexate
+    family: warnings_and_precautions
+    expected_status: answered
+    expected_response_any:
+      - embryo-fetal toxicity
+      - fetal harm
+      - unborn baby
+    expected_cited_heading_any:
+      - Embryo-Fetal Toxicity
+    minimum_citations: 1
+
+  - id: metformin_migraine_abstain
+    query: Does metformin cure migraine headaches?
+    drug: metformin
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: apixaban_allergies_abstain
+    query: Does apixaban treat seasonal allergies?
+    drug: apixaban
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: omeprazole_eyesight_abstain
+    query: Does omeprazole improve eyesight?
+    drug: omeprazole
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0
+
+  - id: acetaminophen_bacterial_infection_abstain
+    query: Does acetaminophen cure bacterial infections?
+    drug: acetaminophen
+    family: null
+    expected_status: insufficient_evidence
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    expected_cited_heading_any: []
+    minimum_citations: 0

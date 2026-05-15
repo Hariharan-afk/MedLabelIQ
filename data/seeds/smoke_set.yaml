@@ -1,0 +1,167 @@
+version: 2
+description: >
+  Phase 1 smoke set for parser, metadata extraction, versioning, and section-aware chunking.
+  Each entry is locked to a reviewed DailyMed SET ID and SPL version for reproducibility.
+
+selection_defaults:
+  name_type: both
+  require_current: true
+  prefer_current_human_drug_label: true
+  manual_review_required_before_lock: true
+
+drugs:
+  - concept_name: acetaminophen
+    query_name: acetaminophen
+    name_type: generic
+    target_profile: single-ingredient oral solid OTC baseline
+    prefer_title_contains: ["ACETAMINOPHEN", "TABLET"]
+    exclude_title_contains: ["BULK", "SUPPOSITORY", "ELIXIR", "SUSPENSION", "LIQUID", "CHILDREN", "PEDIATRIC"]
+    set_id: "ee50c5ee-1a61-4efc-aca9-42d897d6a3b8"
+    locked_spl_version: 8
+    locked_published_date: "2026-04-30"
+    locked_title: "ACETAMINOPHEN TABLET [CARDINAL HEALTH 107, LLC]"
+    lock_reason: "Clean single-ingredient tablet label; intentionally retained as OTC Drug Facts parser stress case."
+    notes: "common OTC analgesic; simple baseline"
+
+  - concept_name: ibuprofen
+    query_name: ibuprofen
+    name_type: generic
+    target_profile: single-ingredient oral solid NSAID
+    prefer_title_contains: ["IBUPROFEN", "TABLET"]
+    exclude_title_contains: ["BULK", "SUSPENSION", "CHILDREN", "PEDIATRIC", "LIQUID"]
+    set_id: "9ce036ef-a22d-4fca-9a62-1b10978f7b26"
+    locked_spl_version: 9
+    locked_published_date: "2026-04-30"
+    locked_title: "IBUPROFEN TABLET, FILM COATED [ASCEND LABORATORIES, LLC]"
+    lock_reason: "Clean single-ingredient prescription tablet label with rich conventional sections."
+    notes: "NSAID warning retrieval baseline"
+
+  - concept_name: metformin
+    query_name: metformin
+    name_type: generic
+    target_profile: single-ingredient immediate-release oral tablet
+    prefer_title_contains: ["METFORMIN", "TABLET"]
+    exclude_title_contains: ["COMBINATION", "SOLUTION", "EXTENDED RELEASE"]
+    set_id: "4f70f907-08d5-4c2e-a4be-32c6124faa7b"
+    locked_spl_version: 15
+    locked_published_date: "2026-04-30"
+    locked_title: "METFORMIN HYDROCHLORIDE TABLET, FILM COATED [MYLAN PHARMACEUTICALS INC.]"
+    lock_reason: "Clean immediate-release single-ingredient PLR-style label with recent major changes and boxed warning."
+    notes: "common chronic medication"
+
+  - concept_name: lisinopril
+    query_name: lisinopril
+    name_type: generic
+    target_profile: single-ingredient oral tablet
+    prefer_title_contains: ["LISINOPRIL", "TABLET"]
+    exclude_title_contains: ["HYDROCHLOROTHIAZIDE", "HCTZ", "COMBINATION"]
+    set_id: "7d6c31e2-b5a4-4279-8013-a8dad37ea73b"
+    locked_spl_version: 23
+    locked_published_date: "2025-11-17"
+    locked_title: "LISINOPRIL TABLET [LUPIN PHARMACEUTICALS, INC.]"
+    lock_reason: "Clean single-ingredient prescription label; preferred over newer repackager entries."
+    notes: "cardiovascular label"
+
+  - concept_name: atorvastatin
+    query_name: atorvastatin
+    name_type: generic
+    target_profile: single-ingredient oral tablet
+    prefer_title_contains: ["ATORVASTATIN", "TABLET"]
+    exclude_title_contains: ["AMLODIPINE", "COMBINATION"]
+    set_id: "536b5e0d-1bb9-4c9d-a588-460d7647308b"
+    locked_spl_version: 3
+    locked_published_date: "2026-02-05"
+    locked_title: "ATORVASTATIN CALCIUM TABLET, FILM COATED [AUROBINDO PHARMA LIMITED]"
+    lock_reason: "Clean single-ingredient manufacturer label with full prescribing sections."
+    notes: "lipid-lowering medication"
+
+  - concept_name: amoxicillin
+    query_name: amoxicillin
+    name_type: generic
+    target_profile: single-ingredient oral capsule
+    prefer_title_contains: ["AMOXICILLIN", "CAPSULE"]
+    exclude_title_contains: ["CLAVULANATE", "RIFABUTIN", "OMEPRAZOLE", "SUSPENSION", "CHEWABLE"]
+    set_id: "4fb7837e-964c-4d38-a3a5-b384b1bd6e08"
+    locked_spl_version: 21
+    locked_published_date: "2026-03-11"
+    locked_title: "AMOXICILLIN CAPSULE [HIKMA PHARMACEUTICALS USA INC.]"
+    lock_reason: "Clean single-ingredient oral capsule with clear contraindications and warnings sections."
+    notes: "antibiotic baseline"
+
+  - concept_name: sertraline
+    query_name: sertraline
+    name_type: generic
+    target_profile: single-ingredient oral tablet
+    prefer_title_contains: ["SERTRALINE", "TABLET"]
+    exclude_title_contains: ["SOLUTION"]
+    set_id: "98960cc1-1d44-4d89-b415-7e250cc762cc"
+    locked_spl_version: 4
+    locked_published_date: "2026-04-09"
+    locked_title: "SERTRALINE HYDROCHLORIDE TABLET, FILM COATED [GRANULES PHARMACEUTICALS INC.]"
+    lock_reason: "Clean single-ingredient PLR-style label with Medication Guide content."
+    notes: "psychiatric label with warning sections"
+
+  - concept_name: albuterol
+    query_name: albuterol
+    name_type: generic
+    target_profile: single-ingredient inhalation aerosol
+    prefer_title_contains: ["ALBUTEROL", "AEROSOL"]
+    exclude_title_contains: ["IPRATROPIUM", "TABLET", "SYRUP", "SOLUTION"]
+    set_id: "fd0389e0-3713-42e0-8ef2-3bb97676fded"
+    locked_spl_version: 2
+    locked_published_date: "2026-04-27"
+    locked_title: "ALBUTEROL (ALBUTEROL SULFATE) AEROSOL, METERED [CIPLA USA INC.]"
+    lock_reason: "Clean non-oral formulation stress case using inhalation aerosol."
+    notes: "respiratory medication; non-oral formulation stress case"
+
+  - concept_name: omeprazole
+    query_name: omeprazole
+    name_type: generic
+    target_profile: single-ingredient delayed-release capsule
+    prefer_title_contains: ["OMEPRAZOLE", "CAPSULE"]
+    exclude_title_contains: ["BICARBONATE", "AMOXICILLIN", "RIFABUTIN", "COMBINATION", "SUSPENSION"]
+    set_id: "516170d4-4913-4577-a2d2-f5c52d1e79c6"
+    locked_spl_version: 9
+    locked_published_date: "2026-03-23"
+    locked_title: "OMEPRAZOLE CAPSULE, DELAYED RELEASE [SANDOZ INC]"
+    lock_reason: "Clean single-ingredient delayed-release capsule label with full prescribing sections."
+    notes: "GI medication; delayed-release wording"
+
+  - concept_name: apixaban
+    query_name: apixaban
+    name_type: generic
+    target_profile: single-ingredient oral tablet
+    prefer_title_contains: ["APIXABAN", "TABLET"]
+    exclude_title_contains: ["STARTER PACK", "KIT"]
+    set_id: "19a60552-374d-4b8b-a8ce-ceae252ea5ba"
+    locked_spl_version: 16
+    locked_published_date: "2025-02-24"
+    locked_title: "APIXABAN TABLET, FILM COATED [AMNEAL PHARMACEUTICALS OF NEW YORK LLC]"
+    lock_reason: "Clean generic single-ingredient tablet; preferred over newer repackaged ELIQUIS and starter-pack labels."
+    notes: "anticoagulant; boxed-warning stress case"
+
+  - concept_name: isotretinoin
+    query_name: isotretinoin
+    name_type: generic
+    target_profile: single-ingredient oral capsule
+    prefer_title_contains: ["ISOTRETINOIN", "CAPSULE"]
+    exclude_title_contains: []
+    set_id: "9f1c8971-c6dc-4708-848b-5cee50b6c32a"
+    locked_spl_version: 9
+    locked_published_date: "2025-11-17"
+    locked_title: "ISOTRETINOIN CAPSULE [AMNEAL PHARMACEUTICALS NY LLC]"
+    lock_reason: "Clean generic high-risk capsule label with prescribing information and Medication Guide."
+    notes: "high-risk label complexity case"
+
+  - concept_name: methotrexate
+    query_name: methotrexate
+    name_type: generic
+    target_profile: single-ingredient oral tablet
+    prefer_title_contains: ["METHOTREXATE", "TABLET"]
+    exclude_title_contains: ["INJECTION", "SOLUTION"]
+    set_id: "8f1260de-b60c-4f0e-8af6-0e957b0a281b"
+    locked_spl_version: 7
+    locked_published_date: "2026-03-26"
+    locked_title: "METHOTREXATE (METHOTREXATE SODIUM) TABLET [SUN PHARMACEUTICAL INDUSTRIES, INC.]"
+    lock_reason: "Clean oral tablet high-risk label with strong contraindication and warning coverage."
+    notes: "boxed-warning stress case"

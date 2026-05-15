@@ -1,0 +1,105 @@
+version: 1
+description: >
+  Paraphrase-heavy retrieval evaluation set for MedLabelIQ.
+  These cases intentionally use user-style wording that may not exactly match
+  the DailyMed label wording. This set is expected to be harder for pure
+  PostgreSQL lexical retrieval and useful later for dense/hybrid comparison.
+
+top_k: 5
+
+cases:
+  - id: metformin_dangerous_acid_buildup
+    query: dangerous acid buildup in the blood
+    drug: metformin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Lactic Acidosis]
+    expected_text_any: [lactic acidosis]
+
+  - id: apixaban_serious_blood_loss
+    query: serious blood loss risk
+    drug: apixaban
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Bleeding]
+    expected_text_any: [bleeding]
+
+  - id: acetaminophen_too_much_can_damage_liver
+    query: taking too much can damage the liver
+    drug: acetaminophen
+    search_family: null
+    expected_families: [warnings]
+    expected_heading_any: [WARNINGS]
+    expected_text_any: [liver damage]
+
+  - id: sertraline_young_people_self_harm_thoughts
+    query: young people may have self harm thoughts
+    drug: sertraline
+    search_family: null
+    expected_families: [boxed_warning, warnings_and_precautions, medication_guide]
+    expected_heading_any: [SUICIDAL THOUGHTS, Suicidal Thoughts]
+    expected_text_any: [suicidal thoughts, suicidal thoughts and behaviors]
+
+  - id: albuterol_breathing_gets_worse_after_inhaler
+    query: breathing gets worse after using inhaler
+    drug: albuterol
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Paradoxical Bronchospasm]
+    expected_text_any: [paradoxical bronchospasm]
+
+  - id: omeprazole_food_pipe_inflammation
+    query: healing inflammation in the food pipe from reflux
+    drug: omeprazole
+    search_family: indications_and_usage
+    expected_families: [indications_and_usage]
+    expected_heading_any: [Erosive Esophagitis, Acid-Mediated GERD]
+    expected_text_any: [erosive esophagitis, acid-mediated GERD]
+
+  - id: lisinopril_face_swelling
+    query: swelling of face lips tongue or throat
+    drug: lisinopril
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Angioedema]
+    expected_text_any: [angioedema]
+
+  - id: atorvastatin_muscle_breakdown
+    query: muscle breakdown and kidney problems
+    drug: atorvastatin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions]
+    expected_heading_any: [Myopathy, Rhabdomyolysis]
+    expected_text_any: [rhabdomyolysis, myopathy]
+
+  - id: methotrexate_harm_unborn_baby
+    query: can harm an unborn baby
+    drug: methotrexate
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions, boxed_warning]
+    expected_heading_any: [Embryo-Fetal Toxicity, WARNING]
+    expected_text_any: [embryo-fetal toxicity, fetal harm]
+
+  - id: isotretinoin_birth_defects
+    query: causes birth defects during pregnancy
+    drug: isotretinoin
+    search_family: boxed_warning
+    expected_families: [boxed_warning]
+    expected_heading_any: [PREGNANCY, EMBRYO-FETAL TOXICITY]
+    expected_text_any: [birth defects, pregnancy]
+
+  - id: amoxicillin_severe_allergic_reaction
+    query: severe allergic reaction
+    drug: amoxicillin
+    search_family: warnings_and_precautions
+    expected_families: [warnings_and_precautions, contraindications]
+    expected_heading_any: [Anaphylactic Reactions, Hypersensitivity]
+    expected_text_any: [anaphylactic, hypersensitivity]
+
+  - id: ibuprofen_stomach_bleed_warning
+    query: warning about bleeding in the stomach
+    drug: ibuprofen
+    search_family: warnings
+    expected_families: [warnings]
+    expected_heading_any: [WARNINGS]
+    expected_text_any: [stomach bleeding, bleeding]
