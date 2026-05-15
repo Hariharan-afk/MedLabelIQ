@@ -29,6 +29,7 @@ from medlabeliq.api.schemas import (
     RxNormVersionResponse,
     DrugFilterResolutionResponse,
     RxNormConceptResponse,
+    DrugMentionDetectionResponse,
 )
 from medlabeliq.config.settings import settings
 from medlabeliq.db.connection import get_connection
@@ -52,6 +53,9 @@ from medlabeliq.orchestration.drug_filter_resolution import (
 from medlabeliq.orchestration.qa_workflow import (
     answer_query_with_drug_resolution,
     build_debug_evidence_pack_with_drug_resolution,
+)
+from medlabeliq.orchestration.drug_mention_detection import (
+    DrugMentionDetection,
 )
 
 
@@ -118,6 +122,25 @@ def serialize_drug_filter_resolution(
         status=resolution.status,
         retrieval_drug=resolution.retrieval_drug,
         corpus_matches=resolution.corpus_matches,
+        selected_candidate=selected_candidate,
+    )
+
+
+def serialize_drug_mention_detection(
+    detection: DrugMentionDetection,
+) -> DrugMentionDetectionResponse:
+    selected_candidate = None
+
+    if detection.selected_candidate is not None:
+        selected_candidate = RxNormConceptResponse(
+            **detection.selected_candidate.to_dict()
+        )
+
+    return DrugMentionDetectionResponse(
+        status=detection.status,
+        detected_mention=detection.detected_mention,
+        retrieval_drug=detection.retrieval_drug,
+        corpus_matches=detection.corpus_matches,
         selected_candidate=selected_candidate,
     )
 
@@ -381,6 +404,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
 
         generated = workflow_result.generated
         drug_resolution = workflow_result.drug_resolution
+        drug_mention_detection = workflow_result.drug_mention_detection
 
         api_latency_ms = round(
             (time.perf_counter() - started) * 1000,
@@ -430,6 +454,9 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 guardrail_triggered=generated.guardrail_triggered,
                 guardrail_reason=generated.guardrail_reason,
                 drug_resolution=drug_resolution_response,
+                drug_mention_detection=serialize_drug_mention_detection(
+                    drug_mention_detection
+                ),
             )
 
         request_log_id: str | None = None
@@ -437,7 +464,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         try:
             request_log_id = log_qa_interaction(
                 query=request.query,
-                drug=drug_resolution.retrieval_drug,
+                drug=workflow_result.retrieval_drug,
                 family=request.family,
                 top_k=request.top_k,
                 include_evidence=request.include_evidence,
@@ -445,8 +472,10 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 generated=generated,
                 api_latency_ms=api_latency_ms,
                 requested_drug=request.drug,
-                resolved_drug=drug_resolution.retrieval_drug,
+                resolved_drug=workflow_result.retrieval_drug,
                 drug_resolution_status=drug_resolution.status,
+                detected_drug_mention=drug_mention_detection.detected_mention,
+                drug_mention_detection_status=drug_mention_detection.status,
             )
         except Exception as log_exc:
             logger.exception(
@@ -457,7 +486,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         return AnswerAPIResponse(
             query=request.query,
             drug=request.drug,
-            resolved_drug=drug_resolution.retrieval_drug,
+            resolved_drug=workflow_result.retrieval_drug,
             family=request.family,
             request_log_id=request_log_id,
             result=result,
@@ -501,6 +530,7 @@ def retrieval_debug(
 
         evidence_pack = workflow_result.evidence_pack
         drug_resolution = workflow_result.drug_resolution
+        drug_mention_detection = workflow_result.drug_mention_detection
 
         evidence = [
             serialize_evidence_item(item)
@@ -510,12 +540,15 @@ def retrieval_debug(
         return RetrievalDebugResponse(
             query=request.query,
             drug=request.drug,
-            resolved_drug=drug_resolution.retrieval_drug,
+            resolved_drug=workflow_result.retrieval_drug,
             family=request.family,
             evidence_count=len(evidence),
             evidence=evidence,
             drug_resolution=serialize_drug_filter_resolution(
                 drug_resolution
+            ),
+            drug_mention_detection=serialize_drug_mention_detection(
+                drug_mention_detection
             ),
         )
 

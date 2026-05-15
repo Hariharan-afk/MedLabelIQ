@@ -55,6 +55,12 @@ ALTER TABLE qa_request_log
 
 ALTER TABLE qa_request_log
     ADD COLUMN IF NOT EXISTS drug_resolution_status TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS detected_drug_mention TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS drug_mention_detection_status TEXT;
     
 CREATE INDEX IF NOT EXISTS idx_qa_request_log_created_at
     ON qa_request_log (created_at DESC);

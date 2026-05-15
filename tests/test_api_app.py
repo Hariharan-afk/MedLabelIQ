@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from medlabeliq.api.app import app
 import medlabeliq.api.app as api_app
+from medlabeliq.api.app import app
 from medlabeliq.api.schemas import HealthComponentResponse
 from medlabeliq.generation.answer_generator import (
     APPLICATION_SAFETY_NOTE,
@@ -12,16 +12,25 @@ from medlabeliq.generation.answer_generator import (
 from medlabeliq.generation.answer_schema import GroundedAnswer
 from medlabeliq.generation.evidence_pack import EvidenceItem, EvidencePack
 from medlabeliq.generation.verification_schema import AnswerVerification
-from medlabeliq.rxnorm.models import DrugTermResolution, RxNormConcept
-from medlabeliq.orchestration.drug_filter_resolution import DrugFilterResolution
+from medlabeliq.orchestration.drug_filter_resolution import (
+    DrugFilterResolution,
+)
+from medlabeliq.orchestration.drug_mention_detection import (
+    DrugMentionDetection,
+)
 from medlabeliq.orchestration.qa_workflow import (
     QAWorkflowResult,
     RetrievalDebugWorkflowResult,
 )
+from medlabeliq.rxnorm.models import DrugTermResolution, RxNormConcept
 
 
 client = TestClient(app)
 
+
+# =============================================================================
+# Shared fixtures/helpers
+# =============================================================================
 
 def make_fake_evidence_pack() -> EvidencePack:
     return EvidencePack(
@@ -81,6 +90,56 @@ def make_fake_generated_answer() -> GeneratedAnswer:
     )
 
 
+def make_explicit_filter_resolution() -> DrugFilterResolution:
+    return DrugFilterResolution(
+        requested_drug="Glucophage",
+        status="resolved",
+        retrieval_drug="metformin",
+        corpus_matches=["metformin"],
+        selected_candidate=None,
+        rxnorm_resolution=None,
+    )
+
+
+def make_explicit_filter_detection() -> DrugMentionDetection:
+    return DrugMentionDetection(
+        query="Can Glucophage cause lactic acidosis?",
+        status="not_attempted_explicit_filter_present",
+        detected_mention=None,
+        retrieval_drug=None,
+        corpus_matches=[],
+        selected_candidate=None,
+        candidate_resolutions=[],
+    )
+
+
+def make_auto_detection_result() -> DrugMentionDetection:
+    return DrugMentionDetection(
+        query="Can Glucophage cause lactic acidosis?",
+        status="rxnorm_resolved_query_mention",
+        detected_mention="Glucophage",
+        retrieval_drug="metformin",
+        corpus_matches=["metformin"],
+        selected_candidate=None,
+        candidate_resolutions=[],
+    )
+
+
+def make_not_requested_filter_resolution() -> DrugFilterResolution:
+    return DrugFilterResolution(
+        requested_drug=None,
+        status="not_requested",
+        retrieval_drug=None,
+        corpus_matches=[],
+        selected_candidate=None,
+        rxnorm_resolution=None,
+    )
+
+
+# =============================================================================
+# Health endpoint
+# =============================================================================
+
 def test_health_endpoint_ok(monkeypatch) -> None:
     monkeypatch.setattr(
         api_app,
@@ -121,15 +180,15 @@ def test_health_endpoint_ok(monkeypatch) -> None:
     assert payload["llm"]["status"] == "ok"
 
 
-def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
-    fake_resolution = DrugFilterResolution(
-        requested_drug="Glucophage",
-        status="resolved",
-        retrieval_drug="metformin",
-        corpus_matches=["metformin"],
-        selected_candidate=None,
-        rxnorm_resolution=None,
-    )
+# =============================================================================
+# QA endpoints
+# =============================================================================
+
+def test_answer_endpoint_returns_grounded_answer_for_explicit_drug_filter(
+    monkeypatch,
+) -> None:
+    fake_resolution = make_explicit_filter_resolution()
+    fake_detection = make_explicit_filter_detection()
 
     monkeypatch.setattr(
         api_app,
@@ -137,6 +196,8 @@ def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
         lambda **kwargs: QAWorkflowResult(
             generated=make_fake_generated_answer(),
             drug_resolution=fake_resolution,
+            drug_mention_detection=fake_detection,
+            retrieval_drug="metformin",
         ),
     )
 
@@ -172,22 +233,93 @@ def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
 
     assert payload["diagnostics"]["verification"]["verdict"] == "supported"
     assert payload["diagnostics"]["guardrail_triggered"] is False
+
     assert payload["diagnostics"]["drug_resolution"]["status"] == "resolved"
     assert (
         payload["diagnostics"]["drug_resolution"]["retrieval_drug"]
         == "metformin"
     )
 
-
-def test_retrieval_debug_endpoint_returns_evidence(monkeypatch) -> None:
-    fake_resolution = DrugFilterResolution(
-        requested_drug="Glucophage",
-        status="resolved",
-        retrieval_drug="metformin",
-        corpus_matches=["metformin"],
-        selected_candidate=None,
-        rxnorm_resolution=None,
+    assert (
+        payload["diagnostics"]["drug_mention_detection"]["status"]
+        == "not_attempted_explicit_filter_present"
     )
+    assert (
+        payload["diagnostics"]["drug_mention_detection"].get("detected_mention")
+        is None
+    )
+
+
+def test_answer_endpoint_returns_grounded_answer_for_auto_detected_query_drug(
+    monkeypatch,
+) -> None:
+    fake_resolution = make_not_requested_filter_resolution()
+    fake_detection = make_auto_detection_result()
+
+    monkeypatch.setattr(
+        api_app,
+        "answer_query_with_drug_resolution",
+        lambda **kwargs: QAWorkflowResult(
+            generated=make_fake_generated_answer(),
+            drug_resolution=fake_resolution,
+            drug_mention_detection=fake_detection,
+            retrieval_drug="metformin",
+        ),
+    )
+
+    monkeypatch.setattr(
+        api_app,
+        "log_qa_interaction",
+        lambda **kwargs: "auto-detection-request-log-id",
+    )
+
+    response = client.post(
+        "/qa/answer",
+        json={
+            "query": "Can Glucophage cause lactic acidosis?",
+            "family": "warnings_and_precautions",
+            "include_evidence": True,
+            "include_diagnostics": True,
+        },
+    )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["request_log_id"] == "auto-detection-request-log-id"
+    assert "drug" not in payload or payload["drug"] is None
+    assert payload["resolved_drug"] == "metformin"
+    assert payload["result"]["status"] == "answered"
+
+    assert (
+        payload["diagnostics"]["drug_resolution"]["status"]
+        == "not_requested"
+    )
+
+    assert (
+        payload["diagnostics"]["drug_mention_detection"]["status"]
+        == "rxnorm_resolved_query_mention"
+    )
+    assert (
+        payload["diagnostics"]["drug_mention_detection"]["detected_mention"]
+        == "Glucophage"
+    )
+    assert (
+        payload["diagnostics"]["drug_mention_detection"]["retrieval_drug"]
+        == "metformin"
+    )
+
+
+# =============================================================================
+# Retrieval debug endpoint
+# =============================================================================
+
+def test_retrieval_debug_endpoint_returns_evidence_for_explicit_drug_filter(
+    monkeypatch,
+) -> None:
+    fake_resolution = make_explicit_filter_resolution()
+    fake_detection = make_explicit_filter_detection()
 
     monkeypatch.setattr(
         api_app,
@@ -195,6 +327,8 @@ def test_retrieval_debug_endpoint_returns_evidence(monkeypatch) -> None:
         lambda **kwargs: RetrievalDebugWorkflowResult(
             evidence_pack=make_fake_evidence_pack(),
             drug_resolution=fake_resolution,
+            drug_mention_detection=fake_detection,
+            retrieval_drug="metformin",
         ),
     )
 
@@ -212,11 +346,68 @@ def test_retrieval_debug_endpoint_returns_evidence(monkeypatch) -> None:
 
     payload = response.json()
 
+    assert payload["drug"] == "Glucophage"
     assert payload["resolved_drug"] == "metformin"
     assert payload["evidence_count"] == 1
     assert payload["evidence"][0]["evidence_id"] == "E1"
     assert payload["evidence"][0]["drug"] == "metformin"
+
     assert payload["drug_resolution"]["status"] == "resolved"
+    assert (
+        payload["drug_mention_detection"]["status"]
+        == "not_attempted_explicit_filter_present"
+    )
+
+
+def test_retrieval_debug_endpoint_returns_evidence_for_auto_detected_drug(
+    monkeypatch,
+) -> None:
+    fake_resolution = make_not_requested_filter_resolution()
+    fake_detection = make_auto_detection_result()
+
+    monkeypatch.setattr(
+        api_app,
+        "build_debug_evidence_pack_with_drug_resolution",
+        lambda **kwargs: RetrievalDebugWorkflowResult(
+            evidence_pack=make_fake_evidence_pack(),
+            drug_resolution=fake_resolution,
+            drug_mention_detection=fake_detection,
+            retrieval_drug="metformin",
+        ),
+    )
+
+    response = client.post(
+        "/retrieval/debug",
+        json={
+            "query": "Can Glucophage cause lactic acidosis?",
+            "family": "warnings_and_precautions",
+            "top_k": 5,
+        },
+    )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert "drug" not in payload or payload["drug"] is None
+    assert payload["resolved_drug"] == "metformin"
+    assert payload["evidence_count"] == 1
+    assert payload["evidence"][0]["evidence_id"] == "E1"
+
+    assert payload["drug_resolution"]["status"] == "not_requested"
+    assert (
+        payload["drug_mention_detection"]["status"]
+        == "rxnorm_resolved_query_mention"
+    )
+    assert (
+        payload["drug_mention_detection"]["detected_mention"]
+        == "Glucophage"
+    )
+
+
+# =============================================================================
+# Corpus metadata endpoints
+# =============================================================================
 
 def test_drugs_endpoint_returns_dynamic_drug_list(monkeypatch) -> None:
     monkeypatch.setattr(
@@ -320,6 +511,11 @@ def test_corpus_stats_endpoint_returns_live_stats(monkeypatch) -> None:
     assert payload["chunk_count"] == 867
     assert payload["qdrant_point_count"] == 867
     assert payload["latest_build"]["build_source"] == "bootstrap"
+
+
+# =============================================================================
+# RxNorm endpoints
+# =============================================================================
 
 def test_normalize_drug_endpoint_returns_corpus_concept(monkeypatch) -> None:
     fake_candidate = RxNormConcept(

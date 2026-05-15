@@ -140,6 +140,7 @@ class DiagnosticsResponse(BaseModel):
     guardrail_reason: str | None
 
     drug_resolution: DrugFilterResolutionResponse | None = None
+    drug_mention_detection: DrugMentionDetectionResponse | None = None
 
 
 class AnswerAPIResponse(BaseModel):
@@ -162,6 +163,7 @@ class RetrievalDebugResponse(BaseModel):
     evidence_count: int
     evidence: list[EvidenceItemResponse]
     drug_resolution: DrugFilterResolutionResponse | None = None
+    drug_mention_detection: DrugMentionDetectionResponse | None = None
 
 # ---------------------------------------------------------------------
 # Corpus metadata response models
@@ -293,6 +295,19 @@ class DrugFilterResolutionResponse(BaseModel):
         "rxnorm_match_no_corpus_match",
         "no_rxnorm_match",
     ]
+    retrieval_drug: str | None
+    corpus_matches: list[str]
+    selected_candidate: RxNormConceptResponse | None
+
+class DrugMentionDetectionResponse(BaseModel):
+    status: Literal[
+        "not_attempted_explicit_filter_present",
+        "direct_corpus_mention",
+        "rxnorm_resolved_query_mention",
+        "ambiguous",
+        "no_mention_detected",
+    ]
+    detected_mention: str | None
     retrieval_drug: str | None
     corpus_matches: list[str]
     selected_candidate: RxNormConceptResponse | None
