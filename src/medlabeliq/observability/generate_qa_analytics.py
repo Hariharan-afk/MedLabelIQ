@@ -38,25 +38,46 @@ SELECT
     request_log_id::text AS request_log_id,
     created_at,
     query_text,
+
     drug_filter,
+    requested_drug_filter,
+    resolved_drug_filter,
+    drug_resolution_status,
+    detected_drug_mention,
+    drug_mention_detection_status,
+
     family_filter,
+    requested_family_filter,
+    family_plan_status,
+    family_plan_intent,
+
+    planned_source,
+    source_plan_status,
+    source_plan_intent,
+    mixed_source_composition_status,
+
     top_k,
     include_evidence,
     include_diagnostics,
+
     final_status,
     final_answer,
     final_citations,
     final_evidence_summary,
     safety_note,
+
     proposed_status,
     verification_enabled,
     verification_verdict,
     verification_rationale,
     verification_evidence_used,
     verification_overrode_answer,
+
     guardrail_triggered,
     guardrail_reason,
+
     evidence_count,
+    identity_evidence_count,
     api_latency_ms
 FROM qa_request_log
 ORDER BY created_at ASC;
@@ -118,6 +139,43 @@ def load_analytics_data() -> tuple[pd.DataFrame, pd.DataFrame]:
             requests_df["proposed_status"].fillna("none")
             + " → "
             + requests_df["final_status"].fillna("none")
+        )
+        
+        requests_df["planned_source"] = (
+            requests_df["planned_source"]
+            .fillna("<UNPLANNED>")
+        )
+
+        requests_df["source_plan_status"] = (
+            requests_df["source_plan_status"]
+            .fillna("<NO_SOURCE_PLAN_STATUS>")
+        )
+
+        requests_df["family_plan_status"] = (
+            requests_df["family_plan_status"]
+            .fillna("<NO_FAMILY_PLAN_STATUS>")
+        )
+
+        requests_df["mixed_source_composition_status"] = (
+            requests_df["mixed_source_composition_status"]
+            .fillna("<NOT_COMPOSED>")
+        )
+
+        requests_df["evidence_count"] = (
+            requests_df["evidence_count"]
+            .fillna(0)
+            .astype(int)
+        )
+
+        requests_df["identity_evidence_count"] = (
+            requests_df["identity_evidence_count"]
+            .fillna(0)
+            .astype(int)
+        )
+
+        requests_df["total_support_evidence_count"] = (
+            requests_df["evidence_count"]
+            + requests_df["identity_evidence_count"]
         )
 
     return requests_df, evidence_df
@@ -261,6 +319,169 @@ def evidence_count_summary(requests_df: pd.DataFrame) -> pd.DataFrame:
         .value_counts()
         .sort_index()
         .rename_axis("evidence_count")
+        .reset_index(name="request_count")
+    )
+
+
+def planned_source_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["planned_source", "request_count", "share"]
+        )
+
+    counts = (
+        requests_df["planned_source"]
+        .value_counts(dropna=False)
+        .rename_axis("planned_source")
+        .reset_index(name="request_count")
+    )
+
+    counts["share"] = (
+        counts["request_count"] / len(requests_df)
+    )
+
+    return counts
+
+
+def source_plan_status_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["source_plan_status", "request_count"]
+        )
+
+    return (
+        requests_df["source_plan_status"]
+        .value_counts(dropna=False)
+        .rename_axis("source_plan_status")
+        .reset_index(name="request_count")
+    )
+
+
+def family_plan_status_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["family_plan_status", "request_count"]
+        )
+
+    return (
+        requests_df["family_plan_status"]
+        .value_counts(dropna=False)
+        .rename_axis("family_plan_status")
+        .reset_index(name="request_count")
+    )
+
+
+def mixed_source_composition_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["mixed_source_composition_status", "request_count"]
+        )
+
+    return (
+        requests_df["mixed_source_composition_status"]
+        .value_counts(dropna=False)
+        .rename_axis("mixed_source_composition_status")
+        .reset_index(name="request_count")
+    )
+
+
+def final_status_by_planned_source_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "planned_source",
+                "final_status",
+                "request_count",
+                "within_source_share",
+            ]
+        )
+
+    grouped = (
+        requests_df
+        .groupby(["planned_source", "final_status"], dropna=False)
+        .size()
+        .reset_index(name="request_count")
+    )
+
+    grouped["within_source_share"] = (
+        grouped["request_count"]
+        / grouped.groupby("planned_source")["request_count"].transform("sum")
+    )
+
+    return grouped
+
+
+def latency_by_planned_source_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "planned_source",
+                "request_count",
+                "mean_ms",
+                "median_ms",
+                "p95_ms",
+                "max_ms",
+            ]
+        )
+
+    summary = (
+        requests_df
+        .groupby("planned_source", dropna=False)["api_latency_ms"]
+        .agg(
+            request_count="count",
+            mean_ms="mean",
+            median_ms="median",
+            p95_ms=lambda values: values.quantile(0.95),
+            max_ms="max",
+        )
+        .reset_index()
+    )
+
+    return summary
+
+
+def identity_evidence_count_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["identity_evidence_count", "request_count"]
+        )
+
+    return (
+        requests_df["identity_evidence_count"]
+        .value_counts()
+        .sort_index()
+        .rename_axis("identity_evidence_count")
+        .reset_index(name="request_count")
+    )
+
+
+def total_support_evidence_count_summary(
+    requests_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if requests_df.empty:
+        return pd.DataFrame(
+            columns=["total_support_evidence_count", "request_count"]
+        )
+
+    return (
+        requests_df["total_support_evidence_count"]
+        .value_counts()
+        .sort_index()
+        .rename_axis("total_support_evidence_count")
         .reset_index(name="request_count")
     )
 
@@ -542,6 +763,70 @@ def generate_plots(
         output_path=plot_dir / "daily_request_volume.png",
     )
 
+    save_bar_plot(
+        df=summaries["planned_source_summary"],
+        x_col="planned_source",
+        y_col="request_count",
+        title="Logged QA Requests by Planned Source",
+        xlabel="Planned source",
+        ylabel="Request count",
+        output_path=plot_dir / "requests_by_planned_source.png",
+        rotate_xticks=True,
+    )
+
+    save_bar_plot(
+        df=summaries["source_plan_status_summary"],
+        x_col="source_plan_status",
+        y_col="request_count",
+        title="Source Plan Status Counts",
+        xlabel="Source plan status",
+        ylabel="Request count",
+        output_path=plot_dir / "source_plan_status_counts.png",
+        rotate_xticks=True,
+    )
+
+    save_bar_plot(
+        df=summaries["family_plan_status_summary"],
+        x_col="family_plan_status",
+        y_col="request_count",
+        title="Retrieval Family Plan Status Counts",
+        xlabel="Family plan status",
+        ylabel="Request count",
+        output_path=plot_dir / "family_plan_status_counts.png",
+        rotate_xticks=True,
+    )
+
+    save_bar_plot(
+        df=summaries["mixed_source_composition_summary"],
+        x_col="mixed_source_composition_status",
+        y_col="request_count",
+        title="Mixed-Source Composition Status Counts",
+        xlabel="Composition status",
+        ylabel="Request count",
+        output_path=plot_dir / "mixed_source_composition_status_counts.png",
+        rotate_xticks=True,
+    )
+
+    save_bar_plot(
+        df=summaries["latency_by_planned_source_summary"],
+        x_col="planned_source",
+        y_col="mean_ms",
+        title="Mean QA Latency by Planned Source",
+        xlabel="Planned source",
+        ylabel="Mean latency (ms)",
+        output_path=plot_dir / "mean_latency_by_planned_source.png",
+        rotate_xticks=True,
+    )
+
+    save_bar_plot(
+        df=summaries["total_support_evidence_count_summary"],
+        x_col="total_support_evidence_count",
+        y_col="request_count",
+        title="Total Support Evidence Count per QA Request",
+        xlabel="Total support evidence count",
+        ylabel="Request count",
+        output_path=plot_dir / "total_support_evidence_count_distribution.png",
+    )
 
 # =============================================================================
 # Terminal summary
@@ -616,6 +901,68 @@ def print_terminal_summary(
                 f"  - {row['verification_verdict']}: "
                 f"{int(row['request_count'])}"
             )
+        print("\nPlanned source routes:")
+    planned_source_df = summaries["planned_source_summary"]
+
+    if planned_source_df.empty:
+        print("  - No planned-source rows available.")
+    else:
+        for _, row in planned_source_df.iterrows():
+            share_pct = float(row["share"]) * 100
+            print(
+                f"  - {row['planned_source']}: "
+                f"{int(row['request_count'])} "
+                f"({share_pct:.1f}%)"
+            )
+
+    print("\nSource plan statuses:")
+    source_status_df = summaries["source_plan_status_summary"]
+
+    if source_status_df.empty:
+        print("  - No source-plan rows available.")
+    else:
+        for _, row in source_status_df.iterrows():
+            print(
+                f"  - {row['source_plan_status']}: "
+                f"{int(row['request_count'])}"
+            )
+
+    print("\nFamily plan statuses:")
+    family_status_df = summaries["family_plan_status_summary"]
+
+    if family_status_df.empty:
+        print("  - No family-plan rows available.")
+    else:
+        for _, row in family_status_df.iterrows():
+            print(
+                f"  - {row['family_plan_status']}: "
+                f"{int(row['request_count'])}"
+            )
+
+    print("\nMixed-source composition statuses:")
+    composition_df = summaries["mixed_source_composition_summary"]
+
+    if composition_df.empty:
+        print("  - No mixed-source composition rows available.")
+    else:
+        for _, row in composition_df.iterrows():
+            print(
+                f"  - {row['mixed_source_composition_status']}: "
+                f"{int(row['request_count'])}"
+            )
+
+    print("\nMean latency by planned source:")
+    source_latency_df = summaries["latency_by_planned_source_summary"]
+
+    if source_latency_df.empty:
+        print("  - No source latency rows available.")
+    else:
+        for _, row in source_latency_df.iterrows():
+            print(
+                f"  - {row['planned_source']}: "
+                f"{float(row['mean_ms']):.2f} ms mean, "
+                f"{float(row['p95_ms']):.2f} ms p95"
+            )
 
     print("\nTop logged evidence families:")
     family_df = summaries["evidence_family_summary"].head(10)
@@ -678,6 +1025,14 @@ def main() -> None:
         "evidence_family_summary": evidence_family_summary(evidence_df),
         "cited_evidence_family_summary": cited_evidence_family_summary(evidence_df),
         "daily_volume_summary": daily_volume_summary(requests_df),
+        "planned_source_summary": planned_source_summary(requests_df),
+        "source_plan_status_summary": source_plan_status_summary(requests_df),
+        "family_plan_status_summary": family_plan_status_summary(requests_df),
+        "mixed_source_composition_summary": mixed_source_composition_summary(requests_df),
+        "final_status_by_planned_source_summary": final_status_by_planned_source_summary(requests_df),
+        "latency_by_planned_source_summary": latency_by_planned_source_summary(requests_df),
+        "identity_evidence_count_summary": identity_evidence_count_summary(requests_df),
+        "total_support_evidence_count_summary": total_support_evidence_count_summary(requests_df),
     }
 
     export_all_csvs(

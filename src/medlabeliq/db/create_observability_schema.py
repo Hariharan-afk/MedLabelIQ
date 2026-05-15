@@ -79,6 +79,12 @@ ALTER TABLE qa_request_log
 
 ALTER TABLE qa_request_log
     ADD COLUMN IF NOT EXISTS source_plan_intent TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS mixed_source_composition_status TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS identity_evidence_count INTEGER NOT NULL DEFAULT 0;
     
 CREATE INDEX IF NOT EXISTS idx_qa_request_log_created_at
     ON qa_request_log (created_at DESC);
@@ -91,6 +97,18 @@ CREATE INDEX IF NOT EXISTS idx_qa_request_log_guardrail_triggered
 
 CREATE INDEX IF NOT EXISTS idx_qa_request_log_verification_verdict
     ON qa_request_log (verification_verdict);
+
+CREATE INDEX IF NOT EXISTS idx_qa_request_log_planned_source
+    ON qa_request_log (planned_source);
+
+CREATE INDEX IF NOT EXISTS idx_qa_request_log_source_plan_status
+    ON qa_request_log (source_plan_status);
+
+CREATE INDEX IF NOT EXISTS idx_qa_request_log_family_plan_status
+    ON qa_request_log (family_plan_status);
+
+CREATE INDEX IF NOT EXISTS idx_qa_request_log_mixed_source_status
+    ON qa_request_log (mixed_source_composition_status);
 
 
 CREATE TABLE IF NOT EXISTS qa_evidence_log (

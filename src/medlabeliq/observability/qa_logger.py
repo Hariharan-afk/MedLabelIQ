@@ -30,6 +30,8 @@ def log_qa_interaction(
     planned_source: str | None = None,
     source_plan_status: str | None = None,
     source_plan_intent: str | None = None,
+    mixed_source_composition_status: str | None = None,
+    identity_evidence_count: int = 0,
 ) -> str:
     """
     Persist one QA request plus its evidence rows.
@@ -91,6 +93,7 @@ def log_qa_interaction(
                     planned_source,
                     source_plan_status,
                     source_plan_intent,
+                    mixed_source_composition_status,
                     top_k,
                     include_evidence,
                     include_diagnostics,
@@ -108,6 +111,7 @@ def log_qa_interaction(
                     guardrail_triggered,
                     guardrail_reason,
                     evidence_count,
+                    identity_evidence_count,
                     api_latency_ms
                 )
                 VALUES (
@@ -117,7 +121,7 @@ def log_qa_interaction(
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
-                    %s, %s, %s
+                    %s, %s, %s, %s, %s
                 );
                 """,
                 (
@@ -136,6 +140,7 @@ def log_qa_interaction(
                     planned_source,
                     source_plan_status,
                     source_plan_intent,
+                    mixed_source_composition_status,
                     top_k,
                     include_evidence,
                     include_diagnostics,
@@ -153,6 +158,7 @@ def log_qa_interaction(
                     generated.guardrail_triggered,
                     generated.guardrail_reason,
                     len(evidence_pack.evidence_items),
+                    identity_evidence_count,
                     api_latency_ms,
                 ),
             )

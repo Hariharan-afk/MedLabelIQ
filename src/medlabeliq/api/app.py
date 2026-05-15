@@ -624,6 +624,16 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                     if source_plan is not None
                     else None
                 ),
+                mixed_source_composition_status=(
+                    mixed_source_composition.status
+                    if mixed_source_composition is not None
+                    else None
+                ),
+                identity_evidence_count=(
+                    len(identity_evidence)
+                    if identity_evidence is not None
+                    else 0
+                ),
             )
         except Exception as log_exc:
             logger.exception(
