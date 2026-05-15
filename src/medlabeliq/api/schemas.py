@@ -142,6 +142,7 @@ class DiagnosticsResponse(BaseModel):
     drug_resolution: DrugFilterResolutionResponse | None = None
     drug_mention_detection: DrugMentionDetectionResponse | None = None
     family_plan: RetrievalFamilyPlanResponse | None = None
+    source_plan: SourceRoutePlanResponse | None = None
 
 
 class AnswerAPIResponse(BaseModel):
@@ -150,10 +151,12 @@ class AnswerAPIResponse(BaseModel):
     resolved_drug: str | None = None
     family: str | None
     planned_family: str | None = None
+    planned_source: str | None = None
     request_log_id: str | None = None
 
     result: GroundedAnswerResponse
     evidence: list[EvidenceItemResponse] | None
+    identity_evidence: list[RxNormIdentityEvidenceResponse] | None = None
     diagnostics: DiagnosticsResponse | None
 
 
@@ -168,6 +171,8 @@ class RetrievalDebugResponse(BaseModel):
     drug_resolution: DrugFilterResolutionResponse | None = None
     drug_mention_detection: DrugMentionDetectionResponse | None = None
     family_plan: RetrievalFamilyPlanResponse | None = None
+    planned_source: str | None = None
+    source_plan: SourceRoutePlanResponse | None = None
 
 # ---------------------------------------------------------------------
 # Corpus metadata response models
@@ -289,6 +294,20 @@ class RxNormVersionResponse(BaseModel):
     api_version: str | None
 
 
+class RxNormIdentityEvidenceResponse(BaseModel):
+    evidence_id: str
+    term: str
+    resolution_status: Literal[
+        "resolved",
+        "ambiguous",
+        "no_rxnorm_match",
+    ]
+    selected_candidate: RxNormConceptResponse | None
+    related_ingredients: list[RxNormConceptResponse]
+    related_brands: list[RxNormConceptResponse]
+    summary: str
+
+
 class DrugFilterResolutionResponse(BaseModel):
     requested_drug: str | None
     status: Literal[
@@ -360,3 +379,34 @@ class RootResponse(BaseModel):
     status: str
     docs: str
     endpoints: list[str]
+
+
+class SourceRouteSignalMatchResponse(BaseModel):
+    source: Literal[
+        "rxnorm_identity",
+        "dailymed_label",
+    ]
+    intent: str
+    score: int
+    matched_signals: list[str]
+
+
+class SourceRoutePlanResponse(BaseModel):
+    status: Literal[
+        "routed_rxnorm_identity",
+        "routed_dailymed_label",
+        "ambiguous_mixed_source",
+        "fallback_dailymed_label",
+    ]
+    selected_source: Literal[
+        "rxnorm_identity",
+        "dailymed_label",
+    ]
+    intent: str | None
+    candidate_sources: list[
+        Literal[
+            "rxnorm_identity",
+            "dailymed_label",
+        ]
+    ]
+    matches: list[SourceRouteSignalMatchResponse]

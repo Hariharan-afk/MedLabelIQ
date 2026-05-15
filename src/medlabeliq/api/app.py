@@ -32,6 +32,9 @@ from medlabeliq.api.schemas import (
     DrugMentionDetectionResponse,
     RetrievalFamilyPlanResponse,
     RetrievalFamilySignalMatchResponse,
+    SourceRoutePlanResponse,
+    SourceRouteSignalMatchResponse,
+    RxNormIdentityEvidenceResponse,
 )
 from medlabeliq.config.settings import settings
 from medlabeliq.db.connection import get_connection
@@ -62,7 +65,12 @@ from medlabeliq.orchestration.drug_mention_detection import (
 from medlabeliq.orchestration.retrieval_family_planner import (
     RetrievalFamilyPlan,
 )
-
+from medlabeliq.orchestration.source_router import (
+    SourceRoutePlan,
+)
+from medlabeliq.rxnorm.identity_models import (
+    RxNormIdentityEvidence,
+)
 
 app = FastAPI(
     title="MedLabelIQ API",
@@ -167,6 +175,53 @@ def serialize_retrieval_family_plan(
             )
             for match in plan.matches
         ],
+    )
+
+
+def serialize_source_route_plan(
+    plan: SourceRoutePlan,
+) -> SourceRoutePlanResponse:
+    return SourceRoutePlanResponse(
+        status=plan.status,
+        selected_source=plan.selected_source,
+        intent=plan.intent,
+        candidate_sources=plan.candidate_sources,
+        matches=[
+            SourceRouteSignalMatchResponse(
+                source=match.source,
+                intent=match.intent,
+                score=match.score,
+                matched_signals=match.matched_signals,
+            )
+            for match in plan.matches
+        ],
+    )
+
+
+def serialize_rxnorm_identity_evidence(
+    evidence: RxNormIdentityEvidence,
+) -> RxNormIdentityEvidenceResponse:
+    selected_candidate = None
+
+    if evidence.selected_candidate is not None:
+        selected_candidate = RxNormConceptResponse(
+            **evidence.selected_candidate.to_dict()
+        )
+
+    return RxNormIdentityEvidenceResponse(
+        evidence_id=evidence.evidence_id,
+        term=evidence.term,
+        resolution_status=evidence.resolution_status,
+        selected_candidate=selected_candidate,
+        related_ingredients=[
+            RxNormConceptResponse(**ingredient.to_dict())
+            for ingredient in evidence.related_ingredients
+        ],
+        related_brands=[
+            RxNormConceptResponse(**brand.to_dict())
+            for brand in evidence.related_brands
+        ],
+        summary=evidence.summary,
     )
 
 # ---------------------------------------------------------------------
@@ -430,6 +485,8 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         drug_resolution = workflow_result.drug_resolution
         drug_mention_detection = workflow_result.drug_mention_detection
         family_plan = workflow_result.family_plan
+        source_plan = workflow_result.source_plan
+        identity_evidence = workflow_result.identity_evidence
 
         api_latency_ms = round(
             (time.perf_counter() - started) * 1000,
@@ -487,7 +544,20 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                     if family_plan is not None
                     else None
                 ),
+                source_plan=(
+                    serialize_source_route_plan(source_plan)
+                    if source_plan is not None
+                    else None
+                ),
             )
+
+        identity_evidence_response=None
+
+        if request.include_evidence and identity_evidence is not None:
+            identity_evidence_response = [
+                serialize_rxnorm_identity_evidence(item)
+                for item in identity_evidence
+            ]
 
         request_log_id: str | None = None
 
@@ -517,6 +587,21 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                     if family_plan is not None
                     else None
                 ),
+                planned_source=(
+                    source_plan.selected_source
+                    if source_plan is not None
+                    else None
+                ),
+                source_plan_status=(
+                    source_plan.status
+                    if source_plan is not None
+                    else None
+                ),
+                source_plan_intent=(
+                    source_plan.intent
+                    if source_plan is not None
+                    else None
+                ),
             )
         except Exception as log_exc:
             logger.exception(
@@ -530,11 +615,16 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
             resolved_drug=workflow_result.retrieval_drug,
             family=request.family,
             planned_family=workflow_result.retrieval_family,
+            planned_source=(
+                source_plan.selected_source
+                if source_plan is not None
+                else None
+            ),
             request_log_id=request_log_id,
             result=result,
             evidence=evidence_response,
+            identity_evidence=identity_evidence_response,
             diagnostics=diagnostics_response,
-            
         )
 
     except RuntimeError as exc:
@@ -575,6 +665,7 @@ def retrieval_debug(
         drug_resolution = workflow_result.drug_resolution
         drug_mention_detection = workflow_result.drug_mention_detection
         family_plan = workflow_result.family_plan
+        source_plan = workflow_result.source_plan
 
         evidence = [
             serialize_evidence_item(item)
@@ -598,6 +689,16 @@ def retrieval_debug(
             family_plan=(
                 serialize_retrieval_family_plan(family_plan)
                 if family_plan is not None
+                else None
+            ),
+            planned_source=(
+                source_plan.selected_source
+                if source_plan is not None
+                else None
+            ),
+            source_plan=(
+                serialize_source_route_plan(source_plan)
+                if source_plan is not None
                 else None
             ),
         )

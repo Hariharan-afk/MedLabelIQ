@@ -27,6 +27,9 @@ def log_qa_interaction(
     requested_family: str | None = None,
     family_plan_status: str | None = None,
     family_plan_intent: str | None = None,
+    planned_source: str | None = None,
+    source_plan_status: str | None = None,
+    source_plan_intent: str | None = None,
 ) -> str:
     """
     Persist one QA request plus its evidence rows.
@@ -85,6 +88,9 @@ def log_qa_interaction(
                     requested_family_filter,
                     family_plan_status,
                     family_plan_intent,
+                    planned_source,
+                    source_plan_status,
+                    source_plan_intent,
                     top_k,
                     include_evidence,
                     include_diagnostics,
@@ -111,6 +117,7 @@ def log_qa_interaction(
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
+                    %s, %s, %s
                 );
                 """,
                 (
@@ -126,6 +133,9 @@ def log_qa_interaction(
                     requested_family,
                     family_plan_status,
                     family_plan_intent,
+                    planned_source,
+                    source_plan_status,
+                    source_plan_intent,
                     top_k,
                     include_evidence,
                     include_diagnostics,

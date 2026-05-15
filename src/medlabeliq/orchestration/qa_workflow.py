@@ -24,6 +24,16 @@ from medlabeliq.orchestration.retrieval_family_planner import (
     RetrievalFamilyPlan,
     plan_retrieval_family,
 )
+from medlabeliq.orchestration.source_router import (
+    SourceRoutePlan,
+    plan_source_route,
+)
+from medlabeliq.rxnorm.identity_answer import (
+    answer_rxnorm_identity_query,
+)
+from medlabeliq.rxnorm.identity_models import (
+    RxNormIdentityEvidence,
+)
 
 
 @dataclass(frozen=True)
@@ -34,6 +44,8 @@ class QAWorkflowResult:
     retrieval_drug: str | None
     family_plan: RetrievalFamilyPlan | None = None
     retrieval_family: str | None = None
+    source_plan: SourceRoutePlan | None = None
+    identity_evidence: list[RxNormIdentityEvidence] | None = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +56,7 @@ class RetrievalDebugWorkflowResult:
     retrieval_drug: str | None
     family_plan: RetrievalFamilyPlan | None = None
     retrieval_family: str | None = None
+    source_plan: SourceRoutePlan | None = None
 
 
 def build_empty_evidence_pack(
@@ -89,15 +102,9 @@ def answer_query_with_drug_resolution(
     QA workflow entry point with:
     - explicit drug-filter normalization,
     - automatic query-level drug mention detection,
-    - retrieval-family planning when no explicit family filter is provided.
-
-    Policy:
-    - Explicit drug filter unresolved -> fail closed.
-    - No explicit drug filter and auto-detection succeeds -> use detected drug.
-    - No explicit drug filter and auto-detection fails/ambiguous -> broad drug retrieval.
-    - Explicit family filter -> use it directly.
-    - No explicit family filter and planner selects one safe family -> filter to it.
-    - Group/ambiguous/no-route family plans -> broad family retrieval.
+    - retrieval-family planning,
+    - source-aware routing,
+    - RxNorm identity execution for identity/equivalence queries.
     """
     drug_resolution = resolve_optional_drug_filter(requested_drug)
 
@@ -110,6 +117,14 @@ def answer_query_with_drug_resolution(
         drug_mention_detection = build_not_attempted_detection(query)
 
         if not drug_resolution.can_retrieve:
+            source_plan = plan_source_route(
+                query,
+                requested_family=retrieval_family,
+                family_plan=family_plan,
+                drug_resolution=drug_resolution,
+                drug_mention_detection=drug_mention_detection,
+            )
+
             empty_pack = build_empty_evidence_pack(
                 query=query,
                 retrieval_family=effective_retrieval_family,
@@ -126,6 +141,8 @@ def answer_query_with_drug_resolution(
                 retrieval_drug=None,
                 family_plan=family_plan,
                 retrieval_family=effective_retrieval_family,
+                source_plan=source_plan,
+                identity_evidence=None,
             )
 
         retrieval_drug = drug_resolution.retrieval_drug
@@ -137,6 +154,34 @@ def answer_query_with_drug_resolution(
             drug_mention_detection.retrieval_drug
             if drug_mention_detection.can_filter
             else None
+        )
+
+    source_plan = plan_source_route(
+        query,
+        requested_family=retrieval_family,
+        family_plan=family_plan,
+        drug_resolution=drug_resolution,
+        drug_mention_detection=drug_mention_detection,
+    )
+
+    if (
+        source_plan.status == "routed_rxnorm_identity"
+        and source_plan.selected_source == "rxnorm_identity"
+    ):
+        identity_result = answer_rxnorm_identity_query(
+            query,
+            intent=source_plan.intent,
+        )
+
+        return QAWorkflowResult(
+            generated=identity_result.generated,
+            drug_resolution=drug_resolution,
+            drug_mention_detection=drug_mention_detection,
+            retrieval_drug=retrieval_drug,
+            family_plan=family_plan,
+            retrieval_family=effective_retrieval_family,
+            source_plan=source_plan,
+            identity_evidence=identity_result.evidence_items,
         )
 
     generated = answer_query(
@@ -153,6 +198,8 @@ def answer_query_with_drug_resolution(
         retrieval_drug=retrieval_drug,
         family_plan=family_plan,
         retrieval_family=effective_retrieval_family,
+        source_plan=source_plan,
+        identity_evidence=None,
     )
 
 
@@ -164,11 +211,13 @@ def build_debug_evidence_pack_with_drug_resolution(
     top_k: int | None = None,
 ) -> RetrievalDebugWorkflowResult:
     """
-    Retrieval-debug workflow entry point with the same:
+    Retrieval-debug workflow entry point with:
     - drug normalization,
     - query-level drug detection,
-    - retrieval-family planning
-    used by the QA answer flow.
+    - retrieval-family planning,
+    - source route planning.
+
+    Identity execution is handled by the QA flow, not retrieval debug.
     """
     drug_resolution = resolve_optional_drug_filter(requested_drug)
 
@@ -181,6 +230,14 @@ def build_debug_evidence_pack_with_drug_resolution(
         drug_mention_detection = build_not_attempted_detection(query)
 
         if not drug_resolution.can_retrieve:
+            source_plan = plan_source_route(
+                query,
+                requested_family=retrieval_family,
+                family_plan=family_plan,
+                drug_resolution=drug_resolution,
+                drug_mention_detection=drug_mention_detection,
+            )
+
             empty_pack = build_empty_evidence_pack(
                 query=query,
                 retrieval_family=effective_retrieval_family,
@@ -193,6 +250,7 @@ def build_debug_evidence_pack_with_drug_resolution(
                 retrieval_drug=None,
                 family_plan=family_plan,
                 retrieval_family=effective_retrieval_family,
+                source_plan=source_plan,
             )
 
         retrieval_drug = drug_resolution.retrieval_drug
@@ -205,6 +263,14 @@ def build_debug_evidence_pack_with_drug_resolution(
             if drug_mention_detection.can_filter
             else None
         )
+
+    source_plan = plan_source_route(
+        query,
+        requested_family=retrieval_family,
+        family_plan=family_plan,
+        drug_resolution=drug_resolution,
+        drug_mention_detection=drug_mention_detection,
+    )
 
     evidence_pack = build_evidence_pack(
         query=query,
@@ -220,4 +286,5 @@ def build_debug_evidence_pack_with_drug_resolution(
         retrieval_drug=retrieval_drug,
         family_plan=family_plan,
         retrieval_family=effective_retrieval_family,
+        source_plan=source_plan,
     )
