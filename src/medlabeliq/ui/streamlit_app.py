@@ -78,16 +78,34 @@ EXAMPLE_QUESTIONS = [
         "family": "warnings_and_precautions",
     },
     {
+        "label": "RxNorm identity",
+        "query": "Is Eliquis the same as apixaban?",
+        "drug": NO_DRUG_FILTER,
+        "family": NO_FAMILY_FILTER,
+    },
+    {
+        "label": "Mixed-source answer",
+        "query": "Is Eliquis the same as apixaban and can it prevent stroke?",
+        "drug": NO_DRUG_FILTER,
+        "family": NO_FAMILY_FILTER,
+    },
+    {
+        "label": "Generic-name lookup",
+        "query": "What is the generic name of Glucophage?",
+        "drug": NO_DRUG_FILTER,
+        "family": NO_FAMILY_FILTER,
+    },
+    {
         "label": "Apixaban abstention",
         "query": "Does apixaban treat bacterial infections?",
         "drug": "apixaban",
         "family": NO_FAMILY_FILTER,
     },
     {
-        "label": "Albuterol risk",
-        "query": "Can albuterol suddenly make breathing worse right after it is used?",
-        "drug": "albuterol",
-        "family": "warnings_and_precautions",
+        "label": "Interaction routing",
+        "query": "Can Eliquis be taken with aspirin?",
+        "drug": NO_DRUG_FILTER,
+        "family": NO_FAMILY_FILTER,
     },
 ]
 
@@ -245,6 +263,37 @@ st.markdown(
             line-height: 1.6;
         }
 
+                .route-card {
+            padding: 0.95rem 1rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.11);
+            background: rgba(255,255,255,0.03);
+            margin-top: 0.65rem;
+            margin-bottom: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .identity-card {
+            padding: 0.95rem 1rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(147, 197, 253, 0.28);
+            background: rgba(59, 130, 246, 0.07);
+            margin-bottom: 0.85rem;
+        }
+
+        .identity-heading {
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+
+        .citation-legend {
+            font-size: 0.84rem;
+            opacity: 0.78;
+            margin-top: 0.3rem;
+            margin-bottom: 0.6rem;
+        }
+
         .corpus-card strong {
             font-weight: 700;
         }
@@ -350,6 +399,22 @@ def safe_set_selected_option(
 
 def humanize_family_name(value: str) -> str:
     return value.replace("_", " ").title()
+
+
+def humanize_source_name(value: str | None) -> str:
+    if value == "dailymed_label":
+        return "DailyMed Label"
+    if value == "rxnorm_identity":
+        return "RxNorm Identity"
+    if value == "multi_source_composed":
+        return "Multi-Source Composed"
+    return value or "Not routed"
+
+
+def comma_join_or_dash(values: list[str] | None) -> str:
+    if not values:
+        return "—"
+    return ", ".join(values)
 
 
 def format_optional_timestamp(value: str | None) -> str:
@@ -752,9 +817,152 @@ def render_evidence_items(evidence: list[dict[str, Any]]) -> None:
             st.write(item["chunk_text"])
 
 
+def render_identity_evidence_items(
+    identity_evidence: list[dict[str, Any]],
+) -> None:
+    if not identity_evidence:
+        st.caption("No RxNorm identity evidence returned.")
+        return
+
+    for item in identity_evidence:
+        selected_candidate = item.get("selected_candidate") or {}
+        related_ingredients = item.get("related_ingredients") or []
+        related_brands = item.get("related_brands") or []
+
+        selected_name = selected_candidate.get("name") or "—"
+        selected_tty = selected_candidate.get("tty") or "—"
+        selected_rxcui = selected_candidate.get("rxcui") or "—"
+
+        ingredient_names = [
+            concept.get("name")
+            for concept in related_ingredients
+            if concept.get("name")
+        ]
+
+        brand_names = [
+            concept.get("name")
+            for concept in related_brands
+            if concept.get("name")
+        ]
+
+        with st.expander(
+            f"[{item['evidence_id']}] RxNorm identity evidence for {item['term']}",
+            expanded=False,
+        ):
+            st.markdown(
+                f"""
+                <div class="identity-card">
+                    <div class="identity-heading">
+                        {item['term']}
+                    </div>
+                    <div class="muted-small">
+                        Resolution status: {item.get("resolution_status", "—")}<br/>
+                        Selected concept: {selected_name} · {selected_tty} · RxCUI {selected_rxcui}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("**Related ingredients**")
+                st.write(comma_join_or_dash(ingredient_names))
+
+            with col2:
+                st.markdown("**Related brands**")
+                st.write(comma_join_or_dash(brand_names))
+
+            st.markdown("**Identity evidence summary**")
+            st.write(item.get("summary") or "—")
+
+
+def render_source_route_summary(
+    *,
+    payload: dict[str, Any],
+    diagnostics: dict[str, Any] | None,
+) -> None:
+    planned_source = payload.get("planned_source")
+    resolved_drug = payload.get("resolved_drug")
+    planned_family = payload.get("planned_family")
+
+    source_plan = (
+        diagnostics.get("source_plan")
+        if diagnostics is not None
+        else None
+    )
+
+    family_plan = (
+        diagnostics.get("family_plan")
+        if diagnostics is not None
+        else None
+    )
+
+    mixed_composition = (
+        diagnostics.get("mixed_source_composition")
+        if diagnostics is not None
+        else None
+    )
+
+    st.markdown(
+        f"""
+        <div class="route-card">
+            <strong>Planned source:</strong> {humanize_source_name(planned_source)}<br/>
+            <strong>Resolved drug:</strong> {resolved_drug or "—"}<br/>
+            <strong>Planned family:</strong> {planned_family or "—"}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if source_plan:
+        st.markdown("#### Source routing")
+        st.markdown(
+            f"""
+            <div class="diag-box">
+                <strong>Status:</strong> {source_plan.get("status", "—")}<br/>
+                <strong>Selected source:</strong> {humanize_source_name(source_plan.get("selected_source"))}<br/>
+                <strong>Intent:</strong> {source_plan.get("intent") or "—"}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if family_plan:
+        st.markdown("#### Retrieval-family planning")
+        st.markdown(
+            f"""
+            <div class="diag-box">
+                <strong>Status:</strong> {family_plan.get("status", "—")}<br/>
+                <strong>Intent:</strong> {family_plan.get("intent") or "—"}<br/>
+                <strong>Planned family:</strong> {family_plan.get("planned_family") or "—"}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    if mixed_composition:
+        st.markdown("#### Mixed-source composition")
+        st.markdown(
+            f"""
+            <div class="diag-box">
+                <strong>Status:</strong> {mixed_composition.get("status", "—")}<br/><br/>
+                <strong>Identity subquery:</strong><br/>
+                {mixed_composition.get("identity_query") or "—"}<br/><br/>
+                <strong>Clinical subquery:</strong><br/>
+                {mixed_composition.get("clinical_query") or "—"}<br/><br/>
+                <strong>Identity intent:</strong> {mixed_composition.get("identity_intent") or "—"}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
 def render_answer_payload(payload: dict[str, Any]) -> None:
     result = payload["result"]
     evidence = payload.get("evidence") or []
+    identity_evidence = payload.get("identity_evidence") or []
     diagnostics = payload.get("diagnostics")
     latency_ms = payload.get("_client_latency_ms")
 
@@ -768,6 +976,15 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
         pill_html.append(pill("Answered", "pill-success"))
     else:
         pill_html.append(pill("Insufficient Evidence", "pill-warning"))
+
+    planned_source = payload.get("planned_source")
+    if planned_source:
+        pill_html.append(
+            pill(
+                humanize_source_name(planned_source),
+                "pill-info",
+            )
+        )
 
     if diagnostics:
         verification = diagnostics.get("verification")
@@ -793,12 +1010,16 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
 
     active_drug = payload.get("drug") or NO_DRUG_FILTER
     active_family = payload.get("family") or NO_FAMILY_FILTER
+    resolved_drug = payload.get("resolved_drug") or "—"
+    planned_family = payload.get("planned_family") or "—"
 
     st.markdown(
         f"""
         <div class="filter-row">
-            <strong>Active filters:</strong>
-            Drug = {active_drug} · Section family = {active_family}
+            <strong>Requested filters:</strong>
+            Drug = {active_drug} · Section family = {active_family}<br/>
+            <strong>Resolved workflow:</strong>
+            Drug = {resolved_drug} · Planned family = {planned_family}
         </div>
         """,
         unsafe_allow_html=True,
@@ -821,6 +1042,15 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
             for citation in citations
         )
         st.markdown(chips, unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div class="citation-legend">
+                Citation legend: <strong>E*</strong> = DailyMed label evidence ·
+                <strong>R*</strong> = RxNorm identity evidence
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     else:
         st.caption("Citations: None")
 
@@ -829,11 +1059,23 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
     with st.expander("Evidence summary", expanded=False):
         st.write(result["evidence_summary"])
 
+    with st.expander("Routing and source plan", expanded=False):
+        render_source_route_summary(
+            payload=payload,
+            diagnostics=diagnostics,
+        )
+
     with st.expander(
-        f"Retrieved evidence ({len(evidence)})",
+        f"DailyMed label evidence ({len(evidence)})",
         expanded=False,
     ):
         render_evidence_items(evidence)
+
+    with st.expander(
+        f"RxNorm identity evidence ({len(identity_evidence)})",
+        expanded=False,
+    ):
+        render_identity_evidence_items(identity_evidence)
 
     if diagnostics is not None:
         with st.expander("Diagnostics", expanded=False):
@@ -886,6 +1128,27 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
 
             with st.expander("Raw diagnostics JSON"):
                 st.json(diagnostics)
+
+            mixed_composition = diagnostics.get(
+                "mixed_source_composition"
+            )
+
+            if mixed_composition:
+                st.markdown("### Mixed-source composition")
+                st.markdown(
+                    f"""
+                    <div class="diag-box">
+                        <strong>Status:</strong> {mixed_composition.get("status", "—")}<br/><br/>
+                        <strong>Identity subquery:</strong><br/>
+                        {mixed_composition.get("identity_query") or "—"}<br/><br/>
+                        <strong>Clinical subquery:</strong><br/>
+                        {mixed_composition.get("clinical_query") or "—"}<br/><br/>
+                        <strong>Identity intent:</strong>
+                        {mixed_composition.get("identity_intent") or "—"}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
 
 def render_retrieval_debug_payload(payload: dict[str, Any]) -> None:
@@ -1010,8 +1273,8 @@ st.markdown(
 st.markdown(
     """
     <div class="hero-subtitle">
-        Grounded medication-label QA using official DailyMed SPL evidence,
-        hybrid retrieval, Groq answer generation, verification, and deterministic abstention guardrails.
+        Grounded medication-label QA with DailyMed label evidence, RxNorm drug-identity reasoning,
+        source-aware orchestration, mixed-source synthesis, verification, and deterministic abstention guardrails.
     </div>
     """,
     unsafe_allow_html=True,
@@ -1023,8 +1286,8 @@ with col1:
     st.markdown(
         """
         <div class="summary-card">
-            <div class="summary-label">Knowledge source</div>
-            <div class="summary-value">Official DailyMed SPL labels</div>
+            <div class="summary-label">Knowledge sources</div>
+            <div class="summary-value">DailyMed SPL + RxNorm</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1034,8 +1297,8 @@ with col2:
     st.markdown(
         """
         <div class="summary-card">
-            <div class="summary-label">Retrieval stack</div>
-            <div class="summary-value">Lexical + Dense + Hybrid RRF</div>
+            <div class="summary-label">Orchestration</div>
+            <div class="summary-value">Routing + Decomposition + Synthesis</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1074,23 +1337,31 @@ ask_tab, debug_tab = st.tabs(
 with ask_tab:
     st.markdown("### Try an example")
 
-    example_cols = st.columns(len(EXAMPLE_QUESTIONS))
+    examples_per_row = 3
 
-    for idx, example in enumerate(EXAMPLE_QUESTIONS):
-        with example_cols[idx]:
-            st.button(
-                example["label"],
-                key=f"example_{idx}",
-                use_container_width=True,
-                on_click=load_example_question,
-                kwargs={
-                    "query": example["query"],
-                    "drug": example["drug"],
-                    "family": example["family"],
-                    "drug_options": drug_options,
-                    "family_options": family_options,
-                },
-            )
+    for row_start in range(0, len(EXAMPLE_QUESTIONS), examples_per_row):
+        row_examples = EXAMPLE_QUESTIONS[
+            row_start : row_start + examples_per_row
+        ]
+        example_cols = st.columns(examples_per_row)
+
+        for offset, example in enumerate(row_examples):
+            idx = row_start + offset
+
+            with example_cols[offset]:
+                st.button(
+                    example["label"],
+                    key=f"example_{idx}",
+                    use_container_width=True,
+                    on_click=load_example_question,
+                    kwargs={
+                        "query": example["query"],
+                        "drug": example["drug"],
+                        "family": example["family"],
+                        "drug_options": drug_options,
+                        "family_options": family_options,
+                    },
+                )
 
     st.markdown("### Ask a medication-label question")
 
