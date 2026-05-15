@@ -1,0 +1,192 @@
+version: 1
+description: >
+  Smoke evaluation set for MedLabelIQ multi-source orchestration.
+  This benchmark evaluates end-to-end routing across DailyMed label QA
+  and RxNorm identity QA, including source selection, family planning,
+  final answer status, citation behavior, and evidence-channel correctness.
+
+cases:
+  # ---------------------------------------------------------------------------
+  # RXNORM IDENTITY ANSWER PATH
+  # ---------------------------------------------------------------------------
+
+  - id: rxnorm_eliquis_apixaban_equivalence_answered
+    query: Is Eliquis the same as apixaban?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - same ingredient concept
+      - apixaban
+    minimum_citations: 2
+    citation_prefix: R
+    minimum_identity_evidence: 2
+    maximum_label_evidence: 0
+
+  - id: rxnorm_glucophage_generic_answered
+    query: What is the generic name of Glucophage?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - metformin
+      - generic ingredient
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_eliquis_active_ingredient_answered
+    query: What is the active ingredient in Eliquis?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - apixaban
+      - active ingredient
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_glucophage_brand_name_answered
+    query: Is Glucophage a brand name?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - brand-name
+      - brand name
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_glucophage_definition_answered
+    query: What is Glucophage?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - brand-name
+      - metformin
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  - id: rxnorm_apixaban_brand_lookup_answered
+    query: What is the brand name of apixaban?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: rxnorm_identity
+    expected_source_route_status: routed_rxnorm_identity
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - Eliquis
+      - brand-name
+    minimum_citations: 1
+    citation_prefix: R
+    minimum_identity_evidence: 1
+    maximum_label_evidence: 0
+
+  # ---------------------------------------------------------------------------
+  # DAILYMED LABEL QA PATH
+  # ---------------------------------------------------------------------------
+
+  - id: label_omeprazole_used_for_answered
+    query: What is omeprazole used for?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - GERD
+      - erosive esophagitis
+      - used for
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_apixaban_aspirin_interaction_answered
+    query: Can apixaban be taken with aspirin?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: drug_interactions
+    expected_response_any:
+      - aspirin
+      - bleeding
+      - bleeding risk
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_metformin_lactic_acidosis_answered
+    query: Can metformin cause dangerous lactic acidosis?
+    drug: null
+    family: null
+    expected_status: answered
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: candidate_family_group_unfiltered
+    expected_response_any:
+      - lactic acidosis
+      - metformin-associated
+    minimum_citations: 1
+    citation_prefix: E
+    minimum_label_evidence: 1
+    maximum_identity_evidence: 0
+
+  - id: label_apixaban_bacterial_infection_abstain
+    query: Does apixaban treat bacterial infections?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: routed_dailymed_label
+    expected_family_plan_status: routed_single_family
+    expected_retrieval_family: indications_and_usage
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
+
+  - id: label_metformin_migraine_abstain
+    query: Does metformin cure migraine headaches?
+    drug: null
+    family: null
+    expected_status: insufficient_evidence
+    expected_source: dailymed_label
+    expected_source_route_status: fallback_dailymed_label
+    expected_family_plan_status: no_route_detected
+    expected_response_any:
+      - not sufficient
+      - insufficient
+    minimum_citations: 0
+    maximum_identity_evidence: 0
