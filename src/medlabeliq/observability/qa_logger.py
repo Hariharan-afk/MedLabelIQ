@@ -24,6 +24,9 @@ def log_qa_interaction(
     drug_resolution_status: str | None = None,
     detected_drug_mention: str | None = None,
     drug_mention_detection_status: str | None = None,
+    requested_family: str | None = None,
+    family_plan_status: str | None = None,
+    family_plan_intent: str | None = None,
 ) -> str:
     """
     Persist one QA request plus its evidence rows.
@@ -79,6 +82,9 @@ def log_qa_interaction(
                     detected_drug_mention,
                     drug_mention_detection_status,
                     family_filter,
+                    requested_family_filter,
+                    family_plan_status,
+                    family_plan_intent,
                     top_k,
                     include_evidence,
                     include_diagnostics,
@@ -100,11 +106,11 @@ def log_qa_interaction(
                 )
                 VALUES (
                     %s, %s, %s, %s, %s,
-                    %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
-                    %s, %s, %s,
-                    %s, %s
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
                 );
                 """,
                 (
@@ -117,6 +123,9 @@ def log_qa_interaction(
                     detected_drug_mention,
                     drug_mention_detection_status,
                     family,
+                    requested_family,
+                    family_plan_status,
+                    family_plan_intent,
                     top_k,
                     include_evidence,
                     include_diagnostics,

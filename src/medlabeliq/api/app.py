@@ -30,6 +30,8 @@ from medlabeliq.api.schemas import (
     DrugFilterResolutionResponse,
     RxNormConceptResponse,
     DrugMentionDetectionResponse,
+    RetrievalFamilyPlanResponse,
+    RetrievalFamilySignalMatchResponse,
 )
 from medlabeliq.config.settings import settings
 from medlabeliq.db.connection import get_connection
@@ -56,6 +58,9 @@ from medlabeliq.orchestration.qa_workflow import (
 )
 from medlabeliq.orchestration.drug_mention_detection import (
     DrugMentionDetection,
+)
+from medlabeliq.orchestration.retrieval_family_planner import (
+    RetrievalFamilyPlan,
 )
 
 
@@ -144,6 +149,25 @@ def serialize_drug_mention_detection(
         selected_candidate=selected_candidate,
     )
 
+
+def serialize_retrieval_family_plan(
+    plan: RetrievalFamilyPlan,
+) -> RetrievalFamilyPlanResponse:
+    return RetrievalFamilyPlanResponse(
+        status=plan.status,
+        intent=plan.intent,
+        planned_family=plan.planned_family,
+        candidate_families=plan.candidate_families,
+        matches=[
+            RetrievalFamilySignalMatchResponse(
+                family=match.family,
+                intent=match.intent,
+                score=match.score,
+                matched_signals=match.matched_signals,
+            )
+            for match in plan.matches
+        ],
+    )
 
 # ---------------------------------------------------------------------
 # Root endpoint
@@ -405,6 +429,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         generated = workflow_result.generated
         drug_resolution = workflow_result.drug_resolution
         drug_mention_detection = workflow_result.drug_mention_detection
+        family_plan = workflow_result.family_plan
 
         api_latency_ms = round(
             (time.perf_counter() - started) * 1000,
@@ -457,6 +482,11 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 drug_mention_detection=serialize_drug_mention_detection(
                     drug_mention_detection
                 ),
+                family_plan=(
+                    serialize_retrieval_family_plan(family_plan)
+                    if family_plan is not None
+                    else None
+                ),
             )
 
         request_log_id: str | None = None
@@ -465,7 +495,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
             request_log_id = log_qa_interaction(
                 query=request.query,
                 drug=workflow_result.retrieval_drug,
-                family=request.family,
+                family=workflow_result.retrieval_family,
                 top_k=request.top_k,
                 include_evidence=request.include_evidence,
                 include_diagnostics=request.include_diagnostics,
@@ -476,6 +506,17 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 drug_resolution_status=drug_resolution.status,
                 detected_drug_mention=drug_mention_detection.detected_mention,
                 drug_mention_detection_status=drug_mention_detection.status,
+                requested_family=request.family,
+                family_plan_status=(
+                    family_plan.status
+                    if family_plan is not None
+                    else None
+                ),
+                family_plan_intent=(
+                    family_plan.intent
+                    if family_plan is not None
+                    else None
+                ),
             )
         except Exception as log_exc:
             logger.exception(
@@ -488,10 +529,12 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
             drug=request.drug,
             resolved_drug=workflow_result.retrieval_drug,
             family=request.family,
+            planned_family=workflow_result.retrieval_family,
             request_log_id=request_log_id,
             result=result,
             evidence=evidence_response,
             diagnostics=diagnostics_response,
+            
         )
 
     except RuntimeError as exc:
@@ -531,6 +574,7 @@ def retrieval_debug(
         evidence_pack = workflow_result.evidence_pack
         drug_resolution = workflow_result.drug_resolution
         drug_mention_detection = workflow_result.drug_mention_detection
+        family_plan = workflow_result.family_plan
 
         evidence = [
             serialize_evidence_item(item)
@@ -542,6 +586,7 @@ def retrieval_debug(
             drug=request.drug,
             resolved_drug=workflow_result.retrieval_drug,
             family=request.family,
+            planned_family=workflow_result.retrieval_family,
             evidence_count=len(evidence),
             evidence=evidence,
             drug_resolution=serialize_drug_filter_resolution(
@@ -549,6 +594,11 @@ def retrieval_debug(
             ),
             drug_mention_detection=serialize_drug_mention_detection(
                 drug_mention_detection
+            ),
+            family_plan=(
+                serialize_retrieval_family_plan(family_plan)
+                if family_plan is not None
+                else None
             ),
         )
 

@@ -61,6 +61,15 @@ ALTER TABLE qa_request_log
 
 ALTER TABLE qa_request_log
     ADD COLUMN IF NOT EXISTS drug_mention_detection_status TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS requested_family_filter TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS family_plan_status TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS family_plan_intent TEXT;
     
 CREATE INDEX IF NOT EXISTS idx_qa_request_log_created_at
     ON qa_request_log (created_at DESC);

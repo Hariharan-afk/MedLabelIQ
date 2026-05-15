@@ -141,6 +141,7 @@ class DiagnosticsResponse(BaseModel):
 
     drug_resolution: DrugFilterResolutionResponse | None = None
     drug_mention_detection: DrugMentionDetectionResponse | None = None
+    family_plan: RetrievalFamilyPlanResponse | None = None
 
 
 class AnswerAPIResponse(BaseModel):
@@ -148,6 +149,7 @@ class AnswerAPIResponse(BaseModel):
     drug: str | None
     resolved_drug: str | None = None
     family: str | None
+    planned_family: str | None = None
     request_log_id: str | None = None
 
     result: GroundedAnswerResponse
@@ -160,10 +162,12 @@ class RetrievalDebugResponse(BaseModel):
     drug: str | None
     resolved_drug: str | None = None
     family: str | None
+    planned_family: str | None = None
     evidence_count: int
     evidence: list[EvidenceItemResponse]
     drug_resolution: DrugFilterResolutionResponse | None = None
     drug_mention_detection: DrugMentionDetectionResponse | None = None
+    family_plan: RetrievalFamilyPlanResponse | None = None
 
 # ---------------------------------------------------------------------
 # Corpus metadata response models
@@ -299,6 +303,7 @@ class DrugFilterResolutionResponse(BaseModel):
     corpus_matches: list[str]
     selected_candidate: RxNormConceptResponse | None
 
+
 class DrugMentionDetectionResponse(BaseModel):
     status: Literal[
         "not_attempted_explicit_filter_present",
@@ -311,6 +316,27 @@ class DrugMentionDetectionResponse(BaseModel):
     retrieval_drug: str | None
     corpus_matches: list[str]
     selected_candidate: RxNormConceptResponse | None
+
+
+class RetrievalFamilySignalMatchResponse(BaseModel):
+    family: str
+    intent: str
+    score: int
+    matched_signals: list[str]
+
+
+class RetrievalFamilyPlanResponse(BaseModel):
+    status: Literal[
+        "not_attempted_explicit_family_present",
+        "routed_single_family",
+        "candidate_family_group_unfiltered",
+        "ambiguous",
+        "no_route_detected",
+    ]
+    intent: str | None
+    planned_family: str | None
+    candidate_families: list[str]
+    matches: list[RetrievalFamilySignalMatchResponse]
     
 # ---------------------------------------------------------------------
 # Health response models
