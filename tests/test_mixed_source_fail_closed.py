@@ -1,19 +1,27 @@
 from __future__ import annotations
 
 import medlabeliq.orchestration.qa_workflow as workflow
+from medlabeliq.generation.answer_generator import GeneratedAnswer
+from medlabeliq.generation.answer_schema import GroundedAnswer
+from medlabeliq.generation.evidence_pack import EvidencePack
 from medlabeliq.orchestration.drug_filter_resolution import (
     DrugFilterResolution,
 )
 from medlabeliq.orchestration.drug_mention_detection import (
     DrugMentionDetection,
 )
+from medlabeliq.orchestration.mixed_source_composition import (
+    MixedSourceCompositionExecution,
+    MixedSourceCompositionMetadata,
+)
 from medlabeliq.orchestration.retrieval_family_planner import (
     RetrievalFamilyPlan,
 )
 from medlabeliq.orchestration.source_router import SourceRoutePlan
+from medlabeliq.rxnorm.identity_models import RxNormIdentityEvidence
 
 
-def test_ambiguous_mixed_source_fails_closed(monkeypatch) -> None:
+def test_ambiguous_mixed_source_executes_composition(monkeypatch) -> None:
     query = "Is Eliquis the same as apixaban and can it prevent stroke?"
 
     drug_resolution = DrugFilterResolution(
@@ -47,7 +55,7 @@ def test_ambiguous_mixed_source_fails_closed(monkeypatch) -> None:
     source_plan = SourceRoutePlan(
         query=query,
         status="ambiguous_mixed_source",
-        selected_source="dailymed_label",
+        selected_source="multi_source_composed",
         intent=None,
         candidate_sources=[
             "rxnorm_identity",
@@ -55,6 +63,48 @@ def test_ambiguous_mixed_source_fails_closed(monkeypatch) -> None:
         ],
         matches=[],
     )
+
+    answer = GroundedAnswer(
+        status="answered",
+        answer=(
+            "Yes. Eliquis and apixaban share an ingredient. "
+            "Apixaban is labeled to reduce stroke risk."
+        ),
+        citations=["R1", "E1"],
+        evidence_summary="Combined RxNorm and DailyMed support.",
+        safety_note="mixed safety note",
+    )
+
+    generated = GeneratedAnswer(
+        evidence_pack=EvidencePack(
+            query=query,
+            concept_name="apixaban",
+            retrieval_family="indications_and_usage",
+            evidence_items=[],
+        ),
+        answer=answer,
+        raw_model_output=None,
+        proposed_answer=answer,
+    )
+
+    mixed_metadata = MixedSourceCompositionMetadata(
+        status="composed_answered",
+        identity_query="Is Eliquis the same as apixaban?",
+        clinical_query="Can apixaban prevent stroke?",
+        identity_intent="brand_generic_equivalence",
+    )
+
+    identity_evidence = [
+        RxNormIdentityEvidence(
+            evidence_id="R1",
+            term="Eliquis",
+            resolution_status="resolved",
+            selected_candidate=None,
+            related_ingredients=[],
+            related_brands=[],
+            summary="Identity evidence.",
+        )
+    ]
 
     monkeypatch.setattr(
         workflow,
@@ -85,24 +135,20 @@ def test_ambiguous_mixed_source_fails_closed(monkeypatch) -> None:
 
     monkeypatch.setattr(
         workflow,
-        "answer_query",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("DailyMed answer_query should not run.")
-        ),
-    )
-
-    monkeypatch.setattr(
-        workflow,
-        "answer_rxnorm_identity_query",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("RxNorm identity answer should not run.")
+        "execute_mixed_source_composition",
+        lambda **kwargs: MixedSourceCompositionExecution(
+            generated=generated,
+            identity_evidence=identity_evidence,
+            metadata=mixed_metadata,
         ),
     )
 
     result = workflow.answer_query_with_drug_resolution(query)
 
-    assert result.generated.answer.status == "insufficient_evidence"
+    assert result.generated.answer.status == "answered"
     assert result.source_plan is not None
     assert result.source_plan.status == "ambiguous_mixed_source"
+    assert result.source_plan.selected_source == "multi_source_composed"
     assert result.retrieval_family == "indications_and_usage"
-    assert result.identity_evidence is None
+    assert result.identity_evidence == identity_evidence
+    assert result.mixed_source_composition == mixed_metadata

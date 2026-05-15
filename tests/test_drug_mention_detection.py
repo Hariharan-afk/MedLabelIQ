@@ -178,3 +178,66 @@ def test_no_detectable_drug_mention(monkeypatch) -> None:
     assert result.status == "no_mention_detected"
     assert result.retrieval_drug is None
     assert result.can_filter is False
+
+
+def test_resolved_brand_match_wins_over_noisy_ambiguous_span(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        module,
+        "list_indexed_corpus_drugs",
+        lambda: ["metformin", "atorvastatin"],
+    )
+
+    glucophage_candidate = RxNormConcept(
+        rxcui="151827",
+        name="Glucophage",
+        synonym="",
+        tty="BN",
+        match_method="exact_or_normalized",
+    )
+
+    def fake_resolve(term: str) -> DrugTermResolution:
+        if term == "Glucophage":
+            return DrugTermResolution(
+                input_term=term,
+                status="resolved",
+                corpus_concept="metformin",
+                corpus_matches=["metformin"],
+                selected_candidate=glucophage_candidate,
+                candidates=[],
+            )
+
+        if term in {"name and", "name and what"}:
+            return DrugTermResolution(
+                input_term=term,
+                status="ambiguous",
+                corpus_concept=None,
+                corpus_matches=["metformin", "atorvastatin"],
+                selected_candidate=None,
+                candidates=[],
+            )
+
+        return DrugTermResolution(
+            input_term=term,
+            status="no_rxnorm_match",
+            corpus_concept=None,
+            corpus_matches=[],
+            selected_candidate=None,
+            candidates=[],
+        )
+
+    monkeypatch.setattr(
+        module,
+        "resolve_drug_term",
+        fake_resolve,
+    )
+
+    result = module.detect_drug_mention_from_query(
+        "Is Glucophage a brand name and what is it used for?"
+    )
+
+    assert result.status == "rxnorm_resolved_query_mention"
+    assert result.detected_mention == "Glucophage"
+    assert result.retrieval_drug == "metformin"
+    assert result.corpus_matches == ["metformin"]

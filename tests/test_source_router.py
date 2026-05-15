@@ -137,6 +137,6 @@ def test_mixed_identity_and_label_query_is_ambiguous() -> None:
     )
 
     assert plan.status == "ambiguous_mixed_source"
-    assert plan.selected_source == "dailymed_label"
+    assert plan.selected_source == "multi_source_composed"
     assert "rxnorm_identity" in plan.candidate_sources
     assert "dailymed_label" in plan.candidate_sources

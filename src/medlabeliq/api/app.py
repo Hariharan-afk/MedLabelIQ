@@ -35,6 +35,7 @@ from medlabeliq.api.schemas import (
     SourceRoutePlanResponse,
     SourceRouteSignalMatchResponse,
     RxNormIdentityEvidenceResponse,
+    MixedSourceCompositionResponse,
 )
 from medlabeliq.config.settings import settings
 from medlabeliq.db.connection import get_connection
@@ -70,6 +71,9 @@ from medlabeliq.orchestration.source_router import (
 )
 from medlabeliq.rxnorm.identity_models import (
     RxNormIdentityEvidence,
+)
+from medlabeliq.orchestration.mixed_source_composition import (
+    MixedSourceCompositionMetadata,
 )
 
 app = FastAPI(
@@ -224,6 +228,16 @@ def serialize_rxnorm_identity_evidence(
         summary=evidence.summary,
     )
 
+
+def serialize_mixed_source_composition(
+    composition: MixedSourceCompositionMetadata,
+) -> MixedSourceCompositionResponse:
+    return MixedSourceCompositionResponse(
+        status=composition.status,
+        identity_query=composition.identity_query,
+        clinical_query=composition.clinical_query,
+        identity_intent=composition.identity_intent,
+    )
 # ---------------------------------------------------------------------
 # Root endpoint
 # ---------------------------------------------------------------------
@@ -487,6 +501,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         family_plan = workflow_result.family_plan
         source_plan = workflow_result.source_plan
         identity_evidence = workflow_result.identity_evidence
+        mixed_source_composition = workflow_result.mixed_source_composition
 
         api_latency_ms = round(
             (time.perf_counter() - started) * 1000,
@@ -547,6 +562,13 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 source_plan=(
                     serialize_source_route_plan(source_plan)
                     if source_plan is not None
+                    else None
+                ),
+                mixed_source_composition=(
+                    serialize_mixed_source_composition(
+                        mixed_source_composition
+                    )
+                    if mixed_source_composition is not None
                     else None
                 ),
             )

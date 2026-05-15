@@ -25,6 +25,7 @@ SourceRouteStatus = Literal[
 SourceName = Literal[
     "rxnorm_identity",
     "dailymed_label",
+    "multi_source_composed",
 ]
 
 
@@ -305,7 +306,7 @@ def plan_source_route(
         return SourceRoutePlan(
             query=query,
             status="ambiguous_mixed_source",
-            selected_source="dailymed_label",
+            selected_source="multi_source_composed",
             intent=None,
             candidate_sources=[
                 "rxnorm_identity",

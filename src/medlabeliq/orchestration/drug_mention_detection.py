@@ -255,7 +255,17 @@ def detect_drug_mention_from_query(
     candidate_spans = extract_candidate_spans(query)
 
     candidate_resolutions: list[DrugMentionCandidateResolution] = []
-    corpus_matches: OrderedDict[str, None] = OrderedDict()
+
+    resolved_candidate_resolutions: list[
+        DrugMentionCandidateResolution
+    ] = []
+
+    fallback_candidate_resolutions: list[
+        DrugMentionCandidateResolution
+    ] = []
+
+    resolved_corpus_matches: OrderedDict[str, None] = OrderedDict()
+    fallback_corpus_matches: OrderedDict[str, None] = OrderedDict()
 
     for candidate_span in candidate_spans:
         resolution = resolve_drug_term(candidate_span)
@@ -263,23 +273,42 @@ def detect_drug_mention_from_query(
         if not resolution.corpus_matches:
             continue
 
-        candidate_resolutions.append(
-            DrugMentionCandidateResolution(
-                mention_text=candidate_span,
-                resolution=resolution,
-            )
+        candidate_resolution = DrugMentionCandidateResolution(
+            mention_text=candidate_span,
+            resolution=resolution,
         )
 
-        for corpus_match in resolution.corpus_matches:
-            corpus_matches[corpus_match] = None
+        candidate_resolutions.append(candidate_resolution)
 
-    unique_corpus_matches = list(corpus_matches.keys())
+        # Prefer clearly resolved candidate spans over ambiguous fuzzy spans.
+        # This prevents noisy text like "name and" from overriding a strong
+        # brand-name detection such as "Glucophage" -> "metformin".
+        if resolution.status == "resolved":
+            resolved_candidate_resolutions.append(candidate_resolution)
+
+            for corpus_match in resolution.corpus_matches:
+                resolved_corpus_matches[corpus_match] = None
+        else:
+            fallback_candidate_resolutions.append(candidate_resolution)
+
+            for corpus_match in resolution.corpus_matches:
+                fallback_corpus_matches[corpus_match] = None
+
+    # If at least one clearly resolved span exists, use only those matches
+    # to decide the retrieval drug. Ambiguous fuzzy spans remain available
+    # in diagnostics but no longer contaminate the final drug decision.
+    if resolved_corpus_matches:
+        unique_corpus_matches = list(resolved_corpus_matches.keys())
+        candidate_pool = resolved_candidate_resolutions
+    else:
+        unique_corpus_matches = list(fallback_corpus_matches.keys())
+        candidate_pool = fallback_candidate_resolutions
 
     if len(unique_corpus_matches) == 1:
         corpus_drug = unique_corpus_matches[0]
 
         chosen_candidate = choose_candidate_for_corpus_drug(
-            candidate_resolutions=candidate_resolutions,
+            candidate_resolutions=candidate_pool,
             corpus_drug=corpus_drug,
         )
 

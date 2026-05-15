@@ -53,8 +53,8 @@ class AnswerRequest(BaseModel):
     include_diagnostics: bool = Field(
         default=True,
         description=(
-            "Whether to include verifier, guardrail, and proposal diagnostics "
-            "in the API response."
+            "Whether to include verifier, guardrail, orchestration, "
+            "and proposal diagnostics in the API response."
         ),
     )
 
@@ -143,6 +143,7 @@ class DiagnosticsResponse(BaseModel):
     drug_mention_detection: DrugMentionDetectionResponse | None = None
     family_plan: RetrievalFamilyPlanResponse | None = None
     source_plan: SourceRoutePlanResponse | None = None
+    mixed_source_composition: MixedSourceCompositionResponse | None = None
 
 
 class AnswerAPIResponse(BaseModel):
@@ -168,11 +169,14 @@ class RetrievalDebugResponse(BaseModel):
     planned_family: str | None = None
     evidence_count: int
     evidence: list[EvidenceItemResponse]
+
     drug_resolution: DrugFilterResolutionResponse | None = None
     drug_mention_detection: DrugMentionDetectionResponse | None = None
     family_plan: RetrievalFamilyPlanResponse | None = None
+
     planned_source: str | None = None
     source_plan: SourceRoutePlanResponse | None = None
+
 
 # ---------------------------------------------------------------------
 # Corpus metadata response models
@@ -241,6 +245,7 @@ class CorpusStatsResponse(BaseModel):
 
     latest_build: CorpusBuildMetadataResponse | None
 
+
 # ---------------------------------------------------------------------
 # RxNorm normalization response models
 # ---------------------------------------------------------------------
@@ -308,6 +313,10 @@ class RxNormIdentityEvidenceResponse(BaseModel):
     summary: str
 
 
+# ---------------------------------------------------------------------
+# Orchestration response models
+# ---------------------------------------------------------------------
+
 class DrugFilterResolutionResponse(BaseModel):
     requested_drug: str | None
     status: Literal[
@@ -356,7 +365,56 @@ class RetrievalFamilyPlanResponse(BaseModel):
     planned_family: str | None
     candidate_families: list[str]
     matches: list[RetrievalFamilySignalMatchResponse]
-    
+
+
+class SourceRouteSignalMatchResponse(BaseModel):
+    source: Literal[
+        "rxnorm_identity",
+        "dailymed_label",
+        "multi_source_composed",
+    ]
+    intent: str
+    score: int
+    matched_signals: list[str]
+
+
+class SourceRoutePlanResponse(BaseModel):
+    status: Literal[
+        "routed_rxnorm_identity",
+        "routed_dailymed_label",
+        "ambiguous_mixed_source",
+        "fallback_dailymed_label",
+    ]
+    selected_source: Literal[
+        "rxnorm_identity",
+        "dailymed_label",
+        "multi_source_composed",
+    ]
+    intent: str | None
+    candidate_sources: list[
+        Literal[
+            "rxnorm_identity",
+            "dailymed_label",
+            "multi_source_composed",
+        ]
+    ]
+    matches: list[SourceRouteSignalMatchResponse]
+
+
+class MixedSourceCompositionResponse(BaseModel):
+    status: Literal[
+        "composed_answered",
+        "unsupported_decomposition",
+        "missing_retrieval_drug",
+        "missing_identity_intent",
+        "identity_insufficient",
+        "clinical_insufficient",
+    ]
+    identity_query: str | None
+    clinical_query: str | None
+    identity_intent: str | None
+
+
 # ---------------------------------------------------------------------
 # Health response models
 # ---------------------------------------------------------------------
@@ -379,34 +437,3 @@ class RootResponse(BaseModel):
     status: str
     docs: str
     endpoints: list[str]
-
-
-class SourceRouteSignalMatchResponse(BaseModel):
-    source: Literal[
-        "rxnorm_identity",
-        "dailymed_label",
-    ]
-    intent: str
-    score: int
-    matched_signals: list[str]
-
-
-class SourceRoutePlanResponse(BaseModel):
-    status: Literal[
-        "routed_rxnorm_identity",
-        "routed_dailymed_label",
-        "ambiguous_mixed_source",
-        "fallback_dailymed_label",
-    ]
-    selected_source: Literal[
-        "rxnorm_identity",
-        "dailymed_label",
-    ]
-    intent: str | None
-    candidate_sources: list[
-        Literal[
-            "rxnorm_identity",
-            "dailymed_label",
-        ]
-    ]
-    matches: list[SourceRouteSignalMatchResponse]

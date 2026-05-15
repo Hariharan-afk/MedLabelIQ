@@ -10,6 +10,9 @@ import yaml
 
 from medlabeliq.config.settings import settings
 from medlabeliq.generation.answer_generator import APPLICATION_SAFETY_NOTE
+from medlabeliq.orchestration.mixed_source_composition import (
+    MIXED_SOURCE_COMPOSITION_SAFETY_NOTE,
+)
 from medlabeliq.orchestration.qa_workflow import (
     answer_query_with_drug_resolution,
 )
@@ -35,6 +38,7 @@ class MultiSourceEvalCase:
 
     minimum_citations: int
     citation_prefix: str | None
+    allowed_citation_prefixes: list[str] | None
 
     minimum_label_evidence: int
     maximum_label_evidence: int | None
@@ -69,6 +73,13 @@ def load_optional_int(value: Any) -> int | None:
     return int(value)
 
 
+def load_optional_string_list(value: Any) -> list[str] | None:
+    if value is None:
+        return None
+
+    return [str(item) for item in value]
+
+
 def load_cases(path: Path) -> list[MultiSourceEvalCase]:
     with path.open("r", encoding="utf-8") as f:
         payload = yaml.safe_load(f)
@@ -101,6 +112,9 @@ def load_cases(path: Path) -> list[MultiSourceEvalCase]:
                     item.get("minimum_citations", 0)
                 ),
                 citation_prefix=item.get("citation_prefix"),
+                allowed_citation_prefixes=load_optional_string_list(
+                    item.get("allowed_citation_prefixes")
+                ),
                 minimum_label_evidence=int(
                     item.get("minimum_label_evidence", 0)
                 ),
@@ -123,6 +137,9 @@ def expected_safety_note_for_source(source: str | None) -> str:
     if source == "rxnorm_identity":
         return RXNORM_IDENTITY_SAFETY_NOTE
 
+    if source == "multi_source_composed":
+        return MIXED_SOURCE_COMPOSITION_SAFETY_NOTE
+
     return APPLICATION_SAFETY_NOTE
 
 
@@ -138,10 +155,43 @@ def evidence_ids_for_citation_validation(
             for item in identity_evidence_items
         }
 
+    if actual_source == "multi_source_composed":
+        return {
+            *[
+                item.evidence_id
+                for item in identity_evidence_items
+            ],
+            *[
+                item.evidence_id
+                for item in label_evidence_items
+            ],
+        }
+
     return {
         item.evidence_id
         for item in label_evidence_items
     }
+
+
+def citation_prefix_passes(
+    *,
+    citations: list[str],
+    citation_prefix: str | None,
+    allowed_citation_prefixes: list[str] | None,
+) -> bool:
+    if allowed_citation_prefixes:
+        return all(
+            any(citation.startswith(prefix) for prefix in allowed_citation_prefixes)
+            for citation in citations
+        )
+
+    if citation_prefix is None:
+        return True
+
+    return all(
+        citation.startswith(citation_prefix)
+        for citation in citations
+    )
 
 
 def evaluate_case(case: MultiSourceEvalCase) -> dict[str, Any]:
@@ -245,13 +295,10 @@ def evaluate_case(case: MultiSourceEvalCase) -> dict[str, Any]:
             for citation in answer.citations
         )
 
-        citation_prefix_pass = (
-            True
-            if case.citation_prefix is None
-            else all(
-                citation.startswith(case.citation_prefix)
-                for citation in answer.citations
-            )
+        citation_prefix_pass = citation_prefix_passes(
+            citations=answer.citations,
+            citation_prefix=case.citation_prefix,
+            allowed_citation_prefixes=case.allowed_citation_prefixes,
         )
 
         label_evidence_count = len(label_evidence_items)
@@ -330,6 +377,11 @@ def evaluate_case(case: MultiSourceEvalCase) -> dict[str, Any]:
             "citations": " | ".join(answer.citations),
             "citation_reference_pass": citation_reference_pass,
             "citation_prefix": case.citation_prefix,
+            "allowed_citation_prefixes": (
+                " | ".join(case.allowed_citation_prefixes)
+                if case.allowed_citation_prefixes
+                else ""
+            ),
             "citation_prefix_pass": citation_prefix_pass,
             "label_evidence_count": label_evidence_count,
             "minimum_label_evidence": case.minimum_label_evidence,
@@ -377,6 +429,11 @@ def evaluate_case(case: MultiSourceEvalCase) -> dict[str, Any]:
             "citations": "",
             "citation_reference_pass": False,
             "citation_prefix": case.citation_prefix,
+            "allowed_citation_prefixes": (
+                " | ".join(case.allowed_citation_prefixes)
+                if case.allowed_citation_prefixes
+                else ""
+            ),
             "citation_prefix_pass": False,
             "label_evidence_count": 0,
             "minimum_label_evidence": case.minimum_label_evidence,
@@ -427,6 +484,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "citations",
         "citation_reference_pass",
         "citation_prefix",
+        "allowed_citation_prefixes",
         "citation_prefix_pass",
         "label_evidence_count",
         "minimum_label_evidence",
@@ -455,7 +513,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Evaluate MedLabelIQ multi-source orchestration across "
-            "DailyMed label QA and RxNorm identity QA."
+            "DailyMed label QA, RxNorm identity QA, and composed mixed-source QA."
         )
     )
 
@@ -562,6 +620,12 @@ def main() -> None:
         if row["actual_source"] == "dailymed_label"
     )
 
+    mixed_route_count = sum(
+        1
+        for row in rows
+        if row["actual_source"] == "multi_source_composed"
+    )
+
     write_csv(output_path, rows)
 
     print("\nMULTI-SOURCE ORCHESTRATION EVALUATION")
@@ -616,6 +680,7 @@ def main() -> None:
     )
     print(f"Actual RxNorm identity routes: {identity_route_count}")
     print(f"Actual DailyMed label routes: {label_route_count}")
+    print(f"Actual mixed-source composed routes: {mixed_route_count}")
     print(f"\nResults written: {output_path}")
 
     print("\nPer-case results:")

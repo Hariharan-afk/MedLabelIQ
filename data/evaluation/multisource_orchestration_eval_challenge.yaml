@@ -300,43 +300,58 @@ cases:
     query: Is Glucophage the same as metformin and what is it used for?
     drug: null
     family: null
-    expected_status: insufficient_evidence
-    expected_source: dailymed_label
+    expected_status: answered
+    expected_source: multi_source_composed
     expected_source_route_status: ambiguous_mixed_source
     expected_family_plan_status: routed_single_family
     expected_retrieval_family: indications_and_usage
     expected_response_any:
-      - not sufficient
-      - insufficient
-    minimum_citations: 0
-    maximum_identity_evidence: 0
+      - same ingredient concept
+      - type 2 diabetes
+      - glycemic control
+    minimum_citations: 3
+    allowed_citation_prefixes:
+      - R
+      - E
+    minimum_label_evidence: 1
+    minimum_identity_evidence: 2
 
   - id: mixed_eliquis_same_as_apixaban_and_stroke_prevention
     query: Is Eliquis the same as apixaban and can it prevent stroke?
     drug: null
     family: null
-    expected_status: insufficient_evidence
-    expected_source: dailymed_label
+    expected_status: answered
+    expected_source: multi_source_composed
     expected_source_route_status: ambiguous_mixed_source
     expected_family_plan_status: routed_single_family
     expected_retrieval_family: indications_and_usage
     expected_response_any:
-      - not sufficient
-      - insufficient
-    minimum_citations: 0
-    maximum_identity_evidence: 0
+      - same ingredient concept
+      - stroke
+      - systemic embolism
+    minimum_citations: 3
+    allowed_citation_prefixes:
+      - R
+      - E
+    minimum_label_evidence: 1
+    minimum_identity_evidence: 2
 
   - id: mixed_glucophage_brand_name_and_used_for
     query: Is Glucophage a brand name and what is it used for?
     drug: null
     family: null
-    expected_status: insufficient_evidence
-    expected_source: dailymed_label
+    expected_status: answered
+    expected_source: multi_source_composed
     expected_source_route_status: ambiguous_mixed_source
     expected_family_plan_status: routed_single_family
     expected_retrieval_family: indications_and_usage
     expected_response_any:
-      - not sufficient
-      - insufficient
-    minimum_citations: 0
-    maximum_identity_evidence: 0
+      - brand-name
+      - type 2 diabetes
+      - glycemic control
+    minimum_citations: 2
+    allowed_citation_prefixes:
+      - R
+      - E
+    minimum_label_evidence: 1
+    minimum_identity_evidence: 1

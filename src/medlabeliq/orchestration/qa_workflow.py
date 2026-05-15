@@ -20,6 +20,10 @@ from medlabeliq.orchestration.drug_mention_detection import (
     build_not_attempted_detection,
     detect_drug_mention_from_query,
 )
+from medlabeliq.orchestration.mixed_source_composition import (
+    MixedSourceCompositionMetadata,
+    execute_mixed_source_composition,
+)
 from medlabeliq.orchestration.retrieval_family_planner import (
     RetrievalFamilyPlan,
     plan_retrieval_family,
@@ -46,6 +50,7 @@ class QAWorkflowResult:
     retrieval_family: str | None = None
     source_plan: SourceRoutePlan | None = None
     identity_evidence: list[RxNormIdentityEvidence] | None = None
+    mixed_source_composition: MixedSourceCompositionMetadata | None = None
 
 
 @dataclass(frozen=True)
@@ -104,7 +109,8 @@ def answer_query_with_drug_resolution(
     - automatic query-level drug mention detection,
     - retrieval-family planning,
     - source-aware routing,
-    - RxNorm identity execution for identity/equivalence queries.
+    - RxNorm identity execution for identity/equivalence queries,
+    - mixed-source decomposition and synthesis for compound queries.
     """
     drug_resolution = resolve_optional_drug_filter(requested_drug)
 
@@ -143,6 +149,7 @@ def answer_query_with_drug_resolution(
                 retrieval_family=effective_retrieval_family,
                 source_plan=source_plan,
                 identity_evidence=None,
+                mixed_source_composition=None,
             )
 
         retrieval_drug = drug_resolution.retrieval_drug
@@ -163,26 +170,29 @@ def answer_query_with_drug_resolution(
         drug_resolution=drug_resolution,
         drug_mention_detection=drug_mention_detection,
     )
-    
-    if source_plan.status == "ambiguous_mixed_source":
-        empty_pack = build_empty_evidence_pack(
-            query=query,
-            retrieval_family=effective_retrieval_family,
-        )
 
-        generated = build_deterministic_insufficient_answer(
-            empty_pack,
+    if (
+        source_plan.status == "ambiguous_mixed_source"
+        and source_plan.selected_source == "multi_source_composed"
+    ):
+        mixed_execution = execute_mixed_source_composition(
+            query=query,
+            source_plan=source_plan,
+            retrieval_drug=retrieval_drug,
+            retrieval_family=effective_retrieval_family,
+            top_k=top_k,
         )
 
         return QAWorkflowResult(
-            generated=generated,
+            generated=mixed_execution.generated,
             drug_resolution=drug_resolution,
             drug_mention_detection=drug_mention_detection,
             retrieval_drug=retrieval_drug,
             family_plan=family_plan,
             retrieval_family=effective_retrieval_family,
             source_plan=source_plan,
-            identity_evidence=None,
+            identity_evidence=mixed_execution.identity_evidence,
+            mixed_source_composition=mixed_execution.metadata,
         )
 
     if (
@@ -203,6 +213,7 @@ def answer_query_with_drug_resolution(
             retrieval_family=effective_retrieval_family,
             source_plan=source_plan,
             identity_evidence=identity_result.evidence_items,
+            mixed_source_composition=None,
         )
 
     generated = answer_query(
@@ -221,6 +232,7 @@ def answer_query_with_drug_resolution(
         retrieval_family=effective_retrieval_family,
         source_plan=source_plan,
         identity_evidence=None,
+        mixed_source_composition=None,
     )
 
 
@@ -238,7 +250,7 @@ def build_debug_evidence_pack_with_drug_resolution(
     - retrieval-family planning,
     - source route planning.
 
-    Identity execution is handled by the QA flow, not retrieval debug.
+    Mixed-source execution is handled by the QA flow, not retrieval debug.
     """
     drug_resolution = resolve_optional_drug_filter(requested_drug)
 
