@@ -1,0 +1,17 @@
+normalized_title,count,example_concepts
+<NO_TITLE>,27,acetaminophen | albuterol | amoxicillin | apixaban | atorvastatin | ibuprofen | isotretinoin | lisinopril | metformin | methotrexate | omeprazole | sertraline
+PRINCIPAL DISPLAY PANEL,4,acetaminophen | apixaban | isotretinoin
+REFERENCES,4,amoxicillin | isotretinoin | methotrexate | omeprazole
+PACKAGE LABEL.PRINCIPAL DISPLAY PANEL,2,ibuprofen | methotrexate
+PACKAGE/LABEL DISPLAY PANEL,2,omeprazole
+PRINCIPAL DISPLAY PANEL – 500 MG,1,metformin
+PRINCIPAL DISPLAY PANEL – 850 MG,1,metformin
+PRINCIPAL DISPLAY PANEL – 1000 MG,1,metformin
+PACKAGE LABEL-PRINCIPAL DISPLAY PANEL - 10 MG (90 TABLETS BOTTLE),1,atorvastatin
+PACKAGE LABEL-PRINCIPAL DISPLAY PANEL - 20 MG (90 TABLETS BOTTLE),1,atorvastatin
+PACKAGE LABEL-PRINCIPAL DISPLAY PANEL - 40 MG (90 TABLETS BOTTLE),1,atorvastatin
+PACKAGE LABEL-PRINCIPAL DISPLAY PANEL - 80 MG (90 TABLETS BOTTLE),1,atorvastatin
+PACKAGE LABEL.PRINCIPAL DISPLAY PANEL- 25 MG 30'S CONTAINER LABEL,1,sertraline
+PACKAGE LABEL.PRINCIPAL DISPLAY PANEL- 50 MG 30'S CONTAINER LABEL,1,sertraline
+PACKAGE LABEL.PRINCIPAL DISPLAY PANEL- 100 MG 30'S CONTAINER LABEL,1,sertraline
+PACKAGE LABEL PRINCIPAL DISPLAY PANEL,1,albuterol

@@ -167,6 +167,20 @@ def write_manifest_csv(rows: list[DownloadManifestRow], path: Path) -> None:
         for row in rows:
             writer.writerow(asdict(row))
 
+def manifest_path_value(path: Path) -> str:
+    """
+    Store artifact paths in a portable manifest form.
+
+    Prefer project-relative POSIX-style paths so the same manifest works across:
+    - local Windows execution,
+    - Linux containers,
+    - CI environments.
+    """
+    try:
+        return path.relative_to(settings.project_root).as_posix()
+    except ValueError:
+        return str(path)
+
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -211,8 +225,8 @@ def main() -> None:
                     locked_spl_version=seed.locked_spl_version,
                     locked_published_date=seed.locked_published_date,
                     locked_title=seed.locked_title,
-                    zip_path=str(zip_path),
-                    xml_path=str(xml_path),
+                    zip_path=manifest_path_value(zip_path),
+                    xml_path=manifest_path_value(xml_path),
                     zip_sha256=zip_sha256,
                     xml_sha256=xml_sha256,
                     xml_member_name=xml_member_name,

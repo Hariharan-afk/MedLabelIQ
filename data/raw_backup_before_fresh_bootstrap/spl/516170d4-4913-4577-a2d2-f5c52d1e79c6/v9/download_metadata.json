@@ -1,0 +1,26 @@
+{
+  "concept_name": "omeprazole",
+  "set_id": "516170d4-4913-4577-a2d2-f5c52d1e79c6",
+  "spl_version": 9,
+  "downloaded_at_utc": "2026-05-10T20:36:06.491197+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=516170d4-4913-4577-a2d2-f5c52d1e79c6&version=9",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:07 GMT",
+    "content-type": "application/zip",
+    "content-length": "453172",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20260323_516170d4-4913-4577-a2d2-f5c52d1e79c6.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "default-src 'self'; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; style-src 'self' 'unsafe-inline' ajax.googleapis.com; font-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; object-src 'none'; frame-src 'self' www.googletagmanager.com *.addthis.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "133d8d0d9b0db993a0e02c8265fd2ea2d33bd01cd79ce3182630e8343bf66105",
+  "xml_sha256": "323d403725e14e8f090f29bc44ea4ee1d1839e5fd8acafd7605d23276a04b534",
+  "xml_member_name": "b182f298-e28f-434b-b6f1-ecfac29d495e.xml"
+}

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "spl": {
+      "title": "APIXABAN TABLET, FILM COATED [AMNEAL PHARMACEUTICALS OF NEW YORK LLC]",
+      "setid": "19a60552-374d-4b8b-a8ce-ceae252ea5ba"
+    },
+    "history": [
+      {
+        "spl_version": 16,
+        "published_date": "Feb 24, 2025"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/19a60552-374d-4b8b-a8ce-ceae252ea5ba/history.json",
+    "next_page_url": "null",
+    "total_elements": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

@@ -21,6 +21,35 @@ def read_csv_rows(path: Path) -> list[dict[str, str]]:
     with path.open("r", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
+def resolve_manifest_artifact_path(
+    *,
+    recorded_path: str,
+    fallback_path: Path,
+) -> Path:
+    """
+    Resolve manifest artifact paths portably across local Windows and Docker.
+
+    Older manifests may contain absolute host-specific paths such as:
+      C:\\Users\\...\\data\\raw\\spl\\...
+
+    Newer manifests may contain project-relative paths such as:
+      data/raw/spl/.../label.xml
+
+    If the recorded path does not exist in the current runtime, fall back to
+    the deterministic artifact location derived from settings.raw_spl_dir.
+    """
+    candidate = Path(recorded_path)
+
+    if candidate.exists():
+        return candidate
+
+    if not candidate.is_absolute():
+        project_relative_candidate = settings.project_root / candidate
+        if project_relative_candidate.exists():
+            return project_relative_candidate
+
+    return fallback_path
+
 
 def validate_download_manifest(
     seeds,
@@ -54,8 +83,21 @@ def validate_download_manifest(
                 f"does not match locked version {seed.locked_spl_version}."
             )
 
-        zip_path = Path(row["zip_path"])
-        xml_path = Path(row["xml_path"])
+        expected_version_dir = (
+            settings.raw_spl_dir
+            / seed.set_id
+            / f"v{seed.locked_spl_version}"
+        )
+
+        zip_path = resolve_manifest_artifact_path(
+            recorded_path=row["zip_path"],
+            fallback_path=expected_version_dir / "label.zip",
+        )
+
+        xml_path = resolve_manifest_artifact_path(
+            recorded_path=row["xml_path"],
+            fallback_path=expected_version_dir / "label.xml",
+        )
 
         if not zip_path.exists():
             errors.append(f"{seed.concept_name}: missing ZIP file at {zip_path}.")

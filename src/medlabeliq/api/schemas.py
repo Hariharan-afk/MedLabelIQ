@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -20,8 +21,11 @@ class AnswerRequest(BaseModel):
 
     drug: str | None = Field(
         default=None,
-        description="Optional normalized drug concept filter, e.g. 'metformin'.",
-        examples=["metformin"],
+        description=(
+            "Optional drug filter. May be an indexed corpus concept, "
+            "brand name, or noisy medication mention resolvable through RxNorm."
+        ),
+        examples=["Glucophage"],
     )
 
     family: str | None = Field(
@@ -65,7 +69,10 @@ class RetrievalDebugRequest(BaseModel):
 
     drug: str | None = Field(
         default=None,
-        description="Optional normalized drug concept filter.",
+        description=(
+            "Optional drug filter. May be an indexed corpus concept, "
+            "brand name, or noisy medication mention resolvable through RxNorm."
+        ),
     )
 
     family: str | None = Field(
@@ -132,10 +139,13 @@ class DiagnosticsResponse(BaseModel):
     guardrail_triggered: bool
     guardrail_reason: str | None
 
+    drug_resolution: DrugFilterResolutionResponse | None = None
+
 
 class AnswerAPIResponse(BaseModel):
     query: str
     drug: str | None
+    resolved_drug: str | None = None
     family: str | None
     request_log_id: str | None = None
 
@@ -147,11 +157,146 @@ class AnswerAPIResponse(BaseModel):
 class RetrievalDebugResponse(BaseModel):
     query: str
     drug: str | None
+    resolved_drug: str | None = None
     family: str | None
     evidence_count: int
     evidence: list[EvidenceItemResponse]
+    drug_resolution: DrugFilterResolutionResponse | None = None
+
+# ---------------------------------------------------------------------
+# Corpus metadata response models
+# ---------------------------------------------------------------------
+
+class DrugSummaryResponse(BaseModel):
+    concept_name: str
+    label_count: int
+    label_version_count: int
+    section_count: int
+    chunk_count: int
 
 
+class DrugListResponse(BaseModel):
+    count: int
+    drugs: list[DrugSummaryResponse]
+
+
+class RetrievalFamilySummaryResponse(BaseModel):
+    retrieval_family: str
+    section_count: int
+    chunk_count: int
+    drug_count: int
+
+
+class RetrievalFamilyListResponse(BaseModel):
+    count: int
+    families: list[RetrievalFamilySummaryResponse]
+
+
+class CorpusBuildMetadataResponse(BaseModel):
+    build_id: str
+    built_at: datetime
+    build_source: str
+    seed_file_path: str
+
+    drug_count: int
+    label_document_count: int
+    label_version_count: int
+    product_count: int
+    ingredient_count: int
+    section_count: int
+    retrievable_section_count: int
+    chunk_count: int
+    retrieval_family_count: int
+
+    qdrant_collection: str
+    qdrant_point_count: int
+    embedding_model_name: str
+
+
+class CorpusStatsResponse(BaseModel):
+    drug_count: int
+    label_document_count: int
+    label_version_count: int
+    product_count: int
+    ingredient_count: int
+    section_count: int
+    retrievable_section_count: int
+    chunk_count: int
+    retrieval_family_count: int
+
+    qdrant_collection: str
+    qdrant_point_count: int | None
+    embedding_model_name: str
+
+    latest_build: CorpusBuildMetadataResponse | None
+
+# ---------------------------------------------------------------------
+# RxNorm normalization response models
+# ---------------------------------------------------------------------
+
+class DrugNormalizationRequest(BaseModel):
+    term: str = Field(
+        ...,
+        min_length=1,
+        max_length=300,
+        description="Drug term, brand name, or noisy medication mention to normalize.",
+        examples=["Glucophage"],
+    )
+
+
+class RxNormConceptResponse(BaseModel):
+    rxcui: str
+    name: str | None
+    synonym: str | None
+    tty: str | None
+
+    source: str | None = None
+    score: float | None = None
+    rank: int | None = None
+    match_method: str | None = None
+
+
+class RxNormCandidateResolutionResponse(BaseModel):
+    candidate: RxNormConceptResponse
+    related_ingredients: list[RxNormConceptResponse]
+    corpus_matches: list[str]
+
+
+class DrugNormalizationResponse(BaseModel):
+    input_term: str
+    status: Literal[
+        "resolved",
+        "ambiguous",
+        "rxnorm_match_no_corpus_match",
+        "no_rxnorm_match",
+    ]
+
+    corpus_concept: str | None
+    corpus_matches: list[str]
+
+    selected_candidate: RxNormConceptResponse | None
+    candidates: list[RxNormCandidateResolutionResponse]
+
+
+class RxNormVersionResponse(BaseModel):
+    version: str | None
+    api_version: str | None
+
+
+class DrugFilterResolutionResponse(BaseModel):
+    requested_drug: str | None
+    status: Literal[
+        "not_requested",
+        "direct_corpus_match",
+        "resolved",
+        "ambiguous",
+        "rxnorm_match_no_corpus_match",
+        "no_rxnorm_match",
+    ]
+    retrieval_drug: str | None
+    corpus_matches: list[str]
+    selected_candidate: RxNormConceptResponse | None
+    
 # ---------------------------------------------------------------------
 # Health response models
 # ---------------------------------------------------------------------

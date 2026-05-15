@@ -1,0 +1,26 @@
+{
+  "concept_name": "amoxicillin",
+  "set_id": "4fb7837e-964c-4d38-a3a5-b384b1bd6e08",
+  "spl_version": 21,
+  "downloaded_at_utc": "2026-05-10T20:36:06.205278+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=4fb7837e-964c-4d38-a3a5-b384b1bd6e08&version=21",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:07 GMT",
+    "content-type": "application/zip",
+    "content-length": "100007",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20260311_4fb7837e-964c-4d38-a3a5-b384b1bd6e08.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "default-src 'self'; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; style-src 'self' 'unsafe-inline' ajax.googleapis.com; font-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; object-src 'none'; frame-src 'self' www.googletagmanager.com *.addthis.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "3154f219342c4dd6248e35f41e9cc0bada1d85766a2fa0672e3cffa650f8f4fb",
+  "xml_sha256": "f01dbf492f6c7d44d76f66fcd940e22ba7c783af65bfcfa92a6b1ae8e9d44e23",
+  "xml_member_name": "ede2b8f8-5f17-494b-8dd9-a3368f76aebf.xml"
+}

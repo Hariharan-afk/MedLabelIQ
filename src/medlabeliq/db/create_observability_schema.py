@@ -47,6 +47,15 @@ CREATE TABLE IF NOT EXISTS qa_request_log (
     api_latency_ms DOUBLE PRECISION NOT NULL
 );
 
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS requested_drug_filter TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS resolved_drug_filter TEXT;
+
+ALTER TABLE qa_request_log
+    ADD COLUMN IF NOT EXISTS drug_resolution_status TEXT;
+    
 CREATE INDEX IF NOT EXISTS idx_qa_request_log_created_at
     ON qa_request_log (created_at DESC);
 

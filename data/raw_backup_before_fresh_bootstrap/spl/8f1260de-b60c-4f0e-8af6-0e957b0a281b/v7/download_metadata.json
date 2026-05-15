@@ -1,0 +1,26 @@
+{
+  "concept_name": "methotrexate",
+  "set_id": "8f1260de-b60c-4f0e-8af6-0e957b0a281b",
+  "spl_version": 7,
+  "downloaded_at_utc": "2026-05-10T20:36:07.256623+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=8f1260de-b60c-4f0e-8af6-0e957b0a281b&version=7",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:08 GMT",
+    "content-type": "application/zip",
+    "content-length": "163452",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20260326_8f1260de-b60c-4f0e-8af6-0e957b0a281b.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "font-src 'self'; default-src 'self'; style-src 'self' 'unsafe-inline' ajax.googleapis.com; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; frame-src 'self' www.googletagmanager.com *.addthis.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "dcf05e06c240547387faf79079ad6b3bf8e3c12db0b1a79dc57c596e23544cd5",
+  "xml_sha256": "d154e577c60ebd9e2610976841673ae3b0d634c91bb430ff64669c412391e001",
+  "xml_member_name": "3d5227aa-72b3-4a55-9674-8e1befe9bdd2.xml"
+}

@@ -19,6 +19,9 @@ def log_qa_interaction(
     include_diagnostics: bool,
     generated: GeneratedAnswer,
     api_latency_ms: float,
+    requested_drug: str | None = None,
+    resolved_drug: str | None = None,
+    drug_resolution_status: str | None = None,
 ) -> str:
     """
     Persist one QA request plus its evidence rows.
@@ -68,6 +71,9 @@ def log_qa_interaction(
                     request_log_id,
                     query_text,
                     drug_filter,
+                    requested_drug_filter,
+                    resolved_drug_filter,
+                    drug_resolution_status,
                     family_filter,
                     top_k,
                     include_evidence,
@@ -90,7 +96,7 @@ def log_qa_interaction(
                 )
                 VALUES (
                     %s, %s, %s, %s, %s,
-                    %s, %s,
+                    %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s,
@@ -101,6 +107,9 @@ def log_qa_interaction(
                     request_log_uuid,
                     query,
                     drug,
+                    requested_drug,
+                    resolved_drug,
+                    drug_resolution_status,
                     family,
                     top_k,
                     include_evidence,

@@ -1,0 +1,26 @@
+{
+  "concept_name": "ibuprofen",
+  "set_id": "9ce036ef-a22d-4fca-9a62-1b10978f7b26",
+  "spl_version": 9,
+  "downloaded_at_utc": "2026-05-10T20:36:05.770908+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=9ce036ef-a22d-4fca-9a62-1b10978f7b26&version=9",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:06 GMT",
+    "content-type": "application/zip",
+    "content-length": "285522",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20260430_9ce036ef-a22d-4fca-9a62-1b10978f7b26.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "font-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; frame-src 'self' www.googletagmanager.com *.addthis.com; object-src 'none'; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; default-src 'self'; style-src 'self' 'unsafe-inline' ajax.googleapis.com; connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "cc1bf52ecb916869c64303b1f1332102970a7f1129656d76db95dd7b60a502e6",
+  "xml_sha256": "42e1adbc0041c93ffe8bf792ca798499deebad08ab88b2d829a7edeb568bd172",
+  "xml_member_name": "8050d9d9-0b0b-4136-be37-a824114f7ea0.xml"
+}

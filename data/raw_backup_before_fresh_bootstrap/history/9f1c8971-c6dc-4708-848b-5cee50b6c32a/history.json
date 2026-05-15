@@ -1,0 +1,26 @@
+{
+  "data": {
+    "spl": {
+      "title": "ISOTRETINOIN CAPSULE [AMNEAL PHARMACEUTICALS NY LLC]",
+      "setid": "9f1c8971-c6dc-4708-848b-5cee50b6c32a"
+    },
+    "history": [
+      {
+        "spl_version": 9,
+        "published_date": "Nov 17, 2025"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/9f1c8971-c6dc-4708-848b-5cee50b6c32a/history.json",
+    "next_page_url": "null",
+    "total_elements": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

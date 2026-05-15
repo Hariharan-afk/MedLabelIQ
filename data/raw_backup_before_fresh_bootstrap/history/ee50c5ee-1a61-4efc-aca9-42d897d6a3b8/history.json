@@ -1,0 +1,54 @@
+{
+  "data": {
+    "spl": {
+      "title": "ACETAMINOPHEN TABLET [CARDINAL HEALTH 107, LLC]",
+      "setid": "ee50c5ee-1a61-4efc-aca9-42d897d6a3b8"
+    },
+    "history": [
+      {
+        "spl_version": 8,
+        "published_date": "Apr 30, 2026"
+      },
+      {
+        "spl_version": 7,
+        "published_date": "Oct 03, 2025"
+      },
+      {
+        "spl_version": 6,
+        "published_date": "May 27, 2024"
+      },
+      {
+        "spl_version": 5,
+        "published_date": "Jan 09, 2024"
+      },
+      {
+        "spl_version": 4,
+        "published_date": "Nov 17, 2023"
+      },
+      {
+        "spl_version": 3,
+        "published_date": "Jan 19, 2023"
+      },
+      {
+        "spl_version": 2,
+        "published_date": "Jan 21, 2022"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "Jun 05, 2019"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/ee50c5ee-1a61-4efc-aca9-42d897d6a3b8/history.json",
+    "next_page_url": "null",
+    "total_elements": 8,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

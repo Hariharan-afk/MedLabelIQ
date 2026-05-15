@@ -32,6 +32,40 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  bootstrap:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medlabeliq-bootstrap
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      QDRANT_URL: http://qdrant:6333
+
+      HF_HOME: /app/.cache/huggingface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - hf_cache:/app/.cache/huggingface
+    entrypoint:
+      - uv
+      - run
+      - python
+      - -m
+      - medlabeliq.bootstrap.initialize_system
+
   api:
     build:
       context: .

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "spl": {
+      "title": "ALBUTEROL (ALBUTEROL SULFATE) AEROSOL, METERED [CIPLA USA INC.]",
+      "setid": "fd0389e0-3713-42e0-8ef2-3bb97676fded"
+    },
+    "history": [
+      {
+        "spl_version": 2,
+        "published_date": "Apr 27, 2026"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/fd0389e0-3713-42e0-8ef2-3bb97676fded/history.json",
+    "next_page_url": "null",
+    "total_elements": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

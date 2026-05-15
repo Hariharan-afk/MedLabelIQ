@@ -12,6 +12,12 @@ from medlabeliq.generation.answer_generator import (
 from medlabeliq.generation.answer_schema import GroundedAnswer
 from medlabeliq.generation.evidence_pack import EvidenceItem, EvidencePack
 from medlabeliq.generation.verification_schema import AnswerVerification
+from medlabeliq.rxnorm.models import DrugTermResolution, RxNormConcept
+from medlabeliq.orchestration.drug_filter_resolution import DrugFilterResolution
+from medlabeliq.orchestration.qa_workflow import (
+    QAWorkflowResult,
+    RetrievalDebugWorkflowResult,
+)
 
 
 client = TestClient(app)
@@ -116,10 +122,22 @@ def test_health_endpoint_ok(monkeypatch) -> None:
 
 
 def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
+    fake_resolution = DrugFilterResolution(
+        requested_drug="Glucophage",
+        status="resolved",
+        retrieval_drug="metformin",
+        corpus_matches=["metformin"],
+        selected_candidate=None,
+        rxnorm_resolution=None,
+    )
+
     monkeypatch.setattr(
         api_app,
-        "answer_query",
-        lambda **kwargs: make_fake_generated_answer(),
+        "answer_query_with_drug_resolution",
+        lambda **kwargs: QAWorkflowResult(
+            generated=make_fake_generated_answer(),
+            drug_resolution=fake_resolution,
+        ),
     )
 
     monkeypatch.setattr(
@@ -131,8 +149,8 @@ def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
     response = client.post(
         "/qa/answer",
         json={
-            "query": "Can metformin cause lactic acidosis?",
-            "drug": "metformin",
+            "query": "Can Glucophage cause lactic acidosis?",
+            "drug": "Glucophage",
             "family": "warnings_and_precautions",
             "include_evidence": True,
             "include_diagnostics": True,
@@ -144,6 +162,8 @@ def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
     payload = response.json()
 
     assert payload["request_log_id"] == "test-request-log-id"
+    assert payload["drug"] == "Glucophage"
+    assert payload["resolved_drug"] == "metformin"
     assert payload["result"]["status"] == "answered"
     assert payload["result"]["citations"] == ["E1"]
 
@@ -152,20 +172,37 @@ def test_answer_endpoint_returns_grounded_answer(monkeypatch) -> None:
 
     assert payload["diagnostics"]["verification"]["verdict"] == "supported"
     assert payload["diagnostics"]["guardrail_triggered"] is False
+    assert payload["diagnostics"]["drug_resolution"]["status"] == "resolved"
+    assert (
+        payload["diagnostics"]["drug_resolution"]["retrieval_drug"]
+        == "metformin"
+    )
 
 
 def test_retrieval_debug_endpoint_returns_evidence(monkeypatch) -> None:
+    fake_resolution = DrugFilterResolution(
+        requested_drug="Glucophage",
+        status="resolved",
+        retrieval_drug="metformin",
+        corpus_matches=["metformin"],
+        selected_candidate=None,
+        rxnorm_resolution=None,
+    )
+
     monkeypatch.setattr(
         api_app,
-        "build_evidence_pack",
-        lambda **kwargs: make_fake_evidence_pack(),
+        "build_debug_evidence_pack_with_drug_resolution",
+        lambda **kwargs: RetrievalDebugWorkflowResult(
+            evidence_pack=make_fake_evidence_pack(),
+            drug_resolution=fake_resolution,
+        ),
     )
 
     response = client.post(
         "/retrieval/debug",
         json={
             "query": "lactic acidosis",
-            "drug": "metformin",
+            "drug": "Glucophage",
             "family": "warnings_and_precautions",
             "top_k": 5,
         },
@@ -175,6 +212,180 @@ def test_retrieval_debug_endpoint_returns_evidence(monkeypatch) -> None:
 
     payload = response.json()
 
+    assert payload["resolved_drug"] == "metformin"
     assert payload["evidence_count"] == 1
     assert payload["evidence"][0]["evidence_id"] == "E1"
     assert payload["evidence"][0]["drug"] == "metformin"
+    assert payload["drug_resolution"]["status"] == "resolved"
+
+def test_drugs_endpoint_returns_dynamic_drug_list(monkeypatch) -> None:
+    monkeypatch.setattr(
+        api_app,
+        "list_drug_summaries",
+        lambda: [
+            {
+                "concept_name": "metformin",
+                "label_count": 1,
+                "label_version_count": 1,
+                "section_count": 72,
+                "chunk_count": 71,
+            }
+        ],
+    )
+
+    response = client.get("/drugs")
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["count"] == 1
+    assert payload["drugs"][0]["concept_name"] == "metformin"
+    assert payload["drugs"][0]["chunk_count"] == 71
+
+
+def test_families_endpoint_returns_dynamic_family_list(monkeypatch) -> None:
+    monkeypatch.setattr(
+        api_app,
+        "list_retrieval_family_summaries",
+        lambda: [
+            {
+                "retrieval_family": "warnings_and_precautions",
+                "section_count": 101,
+                "chunk_count": 105,
+                "drug_count": 10,
+            }
+        ],
+    )
+
+    response = client.get("/families")
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["count"] == 1
+    assert (
+        payload["families"][0]["retrieval_family"]
+        == "warnings_and_precautions"
+    )
+    assert payload["families"][0]["chunk_count"] == 105
+
+
+def test_corpus_stats_endpoint_returns_live_stats(monkeypatch) -> None:
+    monkeypatch.setattr(
+        api_app,
+        "collect_corpus_stats",
+        lambda: {
+            "drug_count": 12,
+            "label_document_count": 12,
+            "label_version_count": 12,
+            "product_count": 37,
+            "ingredient_count": 396,
+            "section_count": 663,
+            "retrievable_section_count": 520,
+            "chunk_count": 867,
+            "retrieval_family_count": 20,
+            "qdrant_collection": "medlabeliq_chunks",
+            "qdrant_point_count": 867,
+            "embedding_model_name": "BAAI/bge-small-en-v1.5",
+            "latest_build": {
+                "build_id": "test-build-id",
+                "built_at": "2026-05-15T00:00:00+00:00",
+                "build_source": "bootstrap",
+                "seed_file_path": "data/seeds/smoke_set.yaml",
+                "drug_count": 12,
+                "label_document_count": 12,
+                "label_version_count": 12,
+                "product_count": 37,
+                "ingredient_count": 396,
+                "section_count": 663,
+                "retrievable_section_count": 520,
+                "chunk_count": 867,
+                "retrieval_family_count": 20,
+                "qdrant_collection": "medlabeliq_chunks",
+                "qdrant_point_count": 867,
+                "embedding_model_name": "BAAI/bge-small-en-v1.5",
+            },
+        },
+    )
+
+    response = client.get("/corpus/stats")
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["drug_count"] == 12
+    assert payload["chunk_count"] == 867
+    assert payload["qdrant_point_count"] == 867
+    assert payload["latest_build"]["build_source"] == "bootstrap"
+
+def test_normalize_drug_endpoint_returns_corpus_concept(monkeypatch) -> None:
+    fake_candidate = RxNormConcept(
+        rxcui="6809",
+        name="metformin",
+        synonym="",
+        tty="IN",
+        match_method="exact_or_normalized",
+    )
+
+    fake_resolution = DrugTermResolution(
+        input_term="metformin",
+        status="resolved",
+        corpus_concept="metformin",
+        corpus_matches=["metformin"],
+        selected_candidate=fake_candidate,
+        candidates=[],
+    )
+
+    monkeypatch.setattr(
+        api_app,
+        "resolve_drug_term",
+        lambda term: fake_resolution,
+    )
+
+    response = client.post(
+        "/normalize/drug",
+        json={
+            "term": "metformin",
+        },
+    )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["status"] == "resolved"
+    assert payload["corpus_concept"] == "metformin"
+    assert payload["selected_candidate"]["rxcui"] == "6809"
+
+
+def test_rxnorm_version_endpoint(monkeypatch) -> None:
+    class FakeVersionClient:
+        def __enter__(self) -> "FakeVersionClient":
+            return self
+
+        def __exit__(self, exc_type, exc, traceback) -> None:
+            return None
+
+        def get_version(self) -> dict[str, str]:
+            return {
+                "version": "04-May-2026",
+                "api_version": "3.1.351",
+            }
+
+    monkeypatch.setattr(
+        api_app,
+        "RxNormClient",
+        FakeVersionClient,
+    )
+
+    response = client.get("/rxnorm/version")
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    assert payload["version"] == "04-May-2026"
+    assert payload["api_version"] == "3.1.351"

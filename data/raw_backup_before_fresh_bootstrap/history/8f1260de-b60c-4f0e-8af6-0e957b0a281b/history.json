@@ -1,0 +1,46 @@
+{
+  "data": {
+    "spl": {
+      "title": "METHOTREXATE (METHOTREXATE SODIUM) TABLET [SUN PHARMACEUTICAL INDUSTRIES, INC.]",
+      "setid": "8f1260de-b60c-4f0e-8af6-0e957b0a281b"
+    },
+    "history": [
+      {
+        "spl_version": 7,
+        "published_date": "Mar 26, 2026"
+      },
+      {
+        "spl_version": 5,
+        "published_date": "Sep 24, 2021"
+      },
+      {
+        "spl_version": 4,
+        "published_date": "Jul 15, 2020"
+      },
+      {
+        "spl_version": 3,
+        "published_date": "Feb 05, 2019"
+      },
+      {
+        "spl_version": 2,
+        "published_date": "Apr 19, 2018"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "Nov 13, 2017"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/8f1260de-b60c-4f0e-8af6-0e957b0a281b/history.json",
+    "next_page_url": "null",
+    "total_elements": 6,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

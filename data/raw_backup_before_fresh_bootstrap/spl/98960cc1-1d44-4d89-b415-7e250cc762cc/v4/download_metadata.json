@@ -1,0 +1,26 @@
+{
+  "concept_name": "sertraline",
+  "set_id": "98960cc1-1d44-4d89-b415-7e250cc762cc",
+  "spl_version": 4,
+  "downloaded_at_utc": "2026-05-10T20:36:06.303193+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=98960cc1-1d44-4d89-b415-7e250cc762cc&version=4",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:07 GMT",
+    "content-type": "application/zip",
+    "content-length": "494610",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20260409_98960cc1-1d44-4d89-b415-7e250cc762cc.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; font-src 'self'; default-src 'self'; frame-src 'self' www.googletagmanager.com *.addthis.com; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; style-src 'self' 'unsafe-inline' ajax.googleapis.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "c96a5e116379086facda0812a7fb0c8f997d71873eb9acfaaa945058aa824c18",
+  "xml_sha256": "29ace7894661b5d727e3a0d89c2aadea751bfa0599204103f23cd190dc920cb1",
+  "xml_member_name": "4ec654e4-0bd5-934d-e063-6294a90a218d.xml"
+}

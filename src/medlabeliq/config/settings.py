@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     dailymed_base_url: str = "https://dailymed.nlm.nih.gov/dailymed/services/v2"
     dailymed_download_base_url: str = "https://dailymed.nlm.nih.gov/dailymed"
 
+    rxnorm_base_url: str = "https://rxnav.nlm.nih.gov/REST"
+    rxnorm_timeout_seconds: int = 20
+    rxnorm_approximate_max_entries: int = 5
+
     http_timeout_seconds: int = 60
     http_user_agent: str = "MedLabelIQ/0.1 (research project)"
 

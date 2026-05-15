@@ -19,6 +19,16 @@ from medlabeliq.api.schemas import (
     RetrievalDebugResponse,
     RootResponse,
     VerificationResponse,
+    CorpusStatsResponse,
+    DrugListResponse,
+    DrugSummaryResponse,
+    RetrievalFamilyListResponse,
+    RetrievalFamilySummaryResponse,
+    DrugNormalizationRequest,
+    DrugNormalizationResponse,
+    RxNormVersionResponse,
+    DrugFilterResolutionResponse,
+    RxNormConceptResponse,
 )
 from medlabeliq.config.settings import settings
 from medlabeliq.db.connection import get_connection
@@ -29,6 +39,20 @@ from medlabeliq.generation.evidence_pack import (
 )
 from medlabeliq.qdrant_store.client import get_qdrant_client
 from medlabeliq.observability.qa_logger import log_qa_interaction
+from medlabeliq.corpus.metadata import (
+    collect_corpus_stats,
+    list_drug_summaries,
+    list_retrieval_family_summaries,
+)
+from medlabeliq.rxnorm.client import RxNormClient
+from medlabeliq.rxnorm.resolver import resolve_drug_term
+from medlabeliq.orchestration.drug_filter_resolution import (
+    DrugFilterResolution,
+)
+from medlabeliq.orchestration.qa_workflow import (
+    answer_query_with_drug_resolution,
+    build_debug_evidence_pack_with_drug_resolution,
+)
 
 
 app = FastAPI(
@@ -79,6 +103,25 @@ def serialize_verification(verification) -> VerificationResponse | None:
     )
 
 
+def serialize_drug_filter_resolution(
+    resolution: DrugFilterResolution,
+) -> DrugFilterResolutionResponse:
+    selected_candidate = None
+
+    if resolution.selected_candidate is not None:
+        selected_candidate = RxNormConceptResponse(
+            **resolution.selected_candidate.to_dict()
+        )
+
+    return DrugFilterResolutionResponse(
+        requested_drug=resolution.requested_drug,
+        status=resolution.status,
+        retrieval_drug=resolution.retrieval_drug,
+        corpus_matches=resolution.corpus_matches,
+        selected_candidate=selected_candidate,
+    )
+
+
 # ---------------------------------------------------------------------
 # Root endpoint
 # ---------------------------------------------------------------------
@@ -95,6 +138,11 @@ def root() -> RootResponse:
         docs="/docs",
         endpoints=[
             "GET /health",
+            "GET /drugs",
+            "GET /families",
+            "GET /corpus/stats",
+            "GET /rxnorm/version",
+            "POST /normalize/drug",
             "POST /qa/answer",
             "POST /retrieval/debug",
         ],
@@ -194,7 +242,122 @@ def health() -> HealthResponse:
         llm=llm_status,
     )
 
+# ---------------------------------------------------------------------
+# Corpus metadata endpoints
+# ---------------------------------------------------------------------
 
+@app.get(
+    "/drugs",
+    response_model=DrugListResponse,
+    tags=["Corpus"],
+)
+def drugs() -> DrugListResponse:
+    try:
+        rows = list_drug_summaries()
+
+        drug_items = [
+            DrugSummaryResponse(**row)
+            for row in rows
+        ]
+
+        return DrugListResponse(
+            count=len(drug_items),
+            drugs=drug_items,
+        )
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(exc).__name__}: {exc}",
+        ) from exc
+
+
+@app.get(
+    "/families",
+    response_model=RetrievalFamilyListResponse,
+    tags=["Corpus"],
+)
+def families() -> RetrievalFamilyListResponse:
+    try:
+        rows = list_retrieval_family_summaries()
+
+        family_items = [
+            RetrievalFamilySummaryResponse(**row)
+            for row in rows
+        ]
+
+        return RetrievalFamilyListResponse(
+            count=len(family_items),
+            families=family_items,
+        )
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(exc).__name__}: {exc}",
+        ) from exc
+
+
+@app.get(
+    "/corpus/stats",
+    response_model=CorpusStatsResponse,
+    response_model_exclude_none=True,
+    tags=["Corpus"],
+)
+def corpus_stats() -> CorpusStatsResponse:
+    try:
+        stats = collect_corpus_stats()
+        return CorpusStatsResponse(**stats)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(exc).__name__}: {exc}",
+        ) from exc
+
+# ---------------------------------------------------------------------
+# RxNorm normalization endpoints
+# ---------------------------------------------------------------------
+
+@app.get(
+    "/rxnorm/version",
+    response_model=RxNormVersionResponse,
+    response_model_exclude_none=True,
+    tags=["RxNorm"],
+)
+def rxnorm_version() -> RxNormVersionResponse:
+    try:
+        with RxNormClient() as client:
+            version_payload = client.get_version()
+
+        return RxNormVersionResponse(**version_payload)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"{type(exc).__name__}: {exc}",
+        ) from exc
+
+
+@app.post(
+    "/normalize/drug",
+    response_model=DrugNormalizationResponse,
+    response_model_exclude_none=True,
+    tags=["RxNorm"],
+)
+def normalize_drug(
+    request: DrugNormalizationRequest,
+) -> DrugNormalizationResponse:
+    try:
+        resolution = resolve_drug_term(request.term)
+        return DrugNormalizationResponse(**resolution.to_dict())
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(exc).__name__}: {exc}",
+        ) from exc
+        
 # ---------------------------------------------------------------------
 # QA answer endpoint
 # ---------------------------------------------------------------------
@@ -209,12 +372,15 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
     started = time.perf_counter()
 
     try:
-        generated = answer_query(
+        workflow_result = answer_query_with_drug_resolution(
             query=request.query,
-            concept_name=request.drug,
+            requested_drug=request.drug,
             retrieval_family=request.family,
             top_k=request.top_k,
         )
+
+        generated = workflow_result.generated
+        drug_resolution = workflow_result.drug_resolution
 
         api_latency_ms = round(
             (time.perf_counter() - started) * 1000,
@@ -239,6 +405,10 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 for item in evidence_pack.evidence_items
             ]
 
+        drug_resolution_response = serialize_drug_filter_resolution(
+            drug_resolution
+        )
+
         diagnostics_response = None
         if request.include_diagnostics:
             proposed_status = (
@@ -259,6 +429,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
                 ),
                 guardrail_triggered=generated.guardrail_triggered,
                 guardrail_reason=generated.guardrail_reason,
+                drug_resolution=drug_resolution_response,
             )
 
         request_log_id: str | None = None
@@ -266,13 +437,16 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         try:
             request_log_id = log_qa_interaction(
                 query=request.query,
-                drug=request.drug,
+                drug=drug_resolution.retrieval_drug,
                 family=request.family,
                 top_k=request.top_k,
                 include_evidence=request.include_evidence,
                 include_diagnostics=request.include_diagnostics,
                 generated=generated,
                 api_latency_ms=api_latency_ms,
+                requested_drug=request.drug,
+                resolved_drug=drug_resolution.retrieval_drug,
+                drug_resolution_status=drug_resolution.status,
             )
         except Exception as log_exc:
             logger.exception(
@@ -283,6 +457,7 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
         return AnswerAPIResponse(
             query=request.query,
             drug=request.drug,
+            resolved_drug=drug_resolution.retrieval_drug,
             family=request.family,
             request_log_id=request_log_id,
             result=result,
@@ -310,18 +485,22 @@ def answer_question(request: AnswerRequest) -> AnswerAPIResponse:
 @app.post(
     "/retrieval/debug",
     response_model=RetrievalDebugResponse,
+    response_model_exclude_none=True,
     tags=["Retrieval"],
 )
 def retrieval_debug(
     request: RetrievalDebugRequest,
 ) -> RetrievalDebugResponse:
     try:
-        evidence_pack = build_evidence_pack(
+        workflow_result = build_debug_evidence_pack_with_drug_resolution(
             query=request.query,
-            concept_name=request.drug,
+            requested_drug=request.drug,
             retrieval_family=request.family,
             top_k=request.top_k,
         )
+
+        evidence_pack = workflow_result.evidence_pack
+        drug_resolution = workflow_result.drug_resolution
 
         evidence = [
             serialize_evidence_item(item)
@@ -331,9 +510,13 @@ def retrieval_debug(
         return RetrievalDebugResponse(
             query=request.query,
             drug=request.drug,
+            resolved_drug=drug_resolution.retrieval_drug,
             family=request.family,
             evidence_count=len(evidence),
             evidence=evidence,
+            drug_resolution=serialize_drug_filter_resolution(
+                drug_resolution
+            ),
         )
 
     except Exception as exc:

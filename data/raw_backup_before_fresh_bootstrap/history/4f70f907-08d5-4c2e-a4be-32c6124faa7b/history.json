@@ -1,0 +1,74 @@
+{
+  "data": {
+    "spl": {
+      "title": "METFORMIN HYDROCHLORIDE TABLET, FILM COATED [MYLAN PHARMACEUTICALS INC.]",
+      "setid": "4f70f907-08d5-4c2e-a4be-32c6124faa7b"
+    },
+    "history": [
+      {
+        "spl_version": 15,
+        "published_date": "Apr 30, 2026"
+      },
+      {
+        "spl_version": 14,
+        "published_date": "Jul 12, 2024"
+      },
+      {
+        "spl_version": 13,
+        "published_date": "May 13, 2024"
+      },
+      {
+        "spl_version": 12,
+        "published_date": "Nov 23, 2021"
+      },
+      {
+        "spl_version": 11,
+        "published_date": "Oct 23, 2018"
+      },
+      {
+        "spl_version": 10,
+        "published_date": "Sep 26, 2018"
+      },
+      {
+        "spl_version": 9,
+        "published_date": "Jun 19, 2017"
+      },
+      {
+        "spl_version": 8,
+        "published_date": "Feb 16, 2017"
+      },
+      {
+        "spl_version": 7,
+        "published_date": "Apr 15, 2016"
+      },
+      {
+        "spl_version": 6,
+        "published_date": "Sep 20, 2012"
+      },
+      {
+        "spl_version": 4,
+        "published_date": "Mar 22, 2012"
+      },
+      {
+        "spl_version": 3,
+        "published_date": "Jan 03, 2012"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "Apr 16, 2010"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/4f70f907-08d5-4c2e-a4be-32c6124faa7b/history.json",
+    "next_page_url": "null",
+    "total_elements": 13,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

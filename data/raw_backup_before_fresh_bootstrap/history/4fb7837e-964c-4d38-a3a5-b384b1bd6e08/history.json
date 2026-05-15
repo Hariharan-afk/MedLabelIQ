@@ -1,0 +1,66 @@
+{
+  "data": {
+    "spl": {
+      "title": "AMOXICILLIN CAPSULE [HIKMA PHARMACEUTICALS USA INC.]",
+      "setid": "4fb7837e-964c-4d38-a3a5-b384b1bd6e08"
+    },
+    "history": [
+      {
+        "spl_version": 21,
+        "published_date": "Mar 11, 2026"
+      },
+      {
+        "spl_version": 20,
+        "published_date": "Aug 21, 2024"
+      },
+      {
+        "spl_version": 18,
+        "published_date": "Feb 22, 2023"
+      },
+      {
+        "spl_version": 17,
+        "published_date": "Feb 20, 2023"
+      },
+      {
+        "spl_version": 16,
+        "published_date": "Feb 09, 2023"
+      },
+      {
+        "spl_version": 15,
+        "published_date": "Oct 31, 2022"
+      },
+      {
+        "spl_version": 14,
+        "published_date": "Jan 12, 2021"
+      },
+      {
+        "spl_version": 13,
+        "published_date": "Mar 08, 2019"
+      },
+      {
+        "spl_version": 7,
+        "published_date": "Oct 17, 2011"
+      },
+      {
+        "spl_version": 5,
+        "published_date": "Dec 15, 2009"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "Oct 09, 2009"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/4fb7837e-964c-4d38-a3a5-b384b1bd6e08/history.json",
+    "next_page_url": "null",
+    "total_elements": 11,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

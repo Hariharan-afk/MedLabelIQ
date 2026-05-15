@@ -1,0 +1,26 @@
+{
+  "concept_name": "isotretinoin",
+  "set_id": "9f1c8971-c6dc-4708-848b-5cee50b6c32a",
+  "spl_version": 9,
+  "downloaded_at_utc": "2026-05-10T20:36:07.194311+00:00",
+  "request_url": "https://dailymed.nlm.nih.gov/dailymed/getFile.cfm?type=zip&setid=9f1c8971-c6dc-4708-848b-5cee50b6c32a&version=9",
+  "response_headers": {
+    "date": "Sun, 10 May 2026 20:36:07 GMT",
+    "content-type": "application/zip",
+    "content-length": "4179202",
+    "connection": "keep-alive",
+    "status": "200 OK",
+    "content-disposition": "attachment; filename=20251012_9f1c8971-c6dc-4708-848b-5cee50b6c32a.zip",
+    "vary": "Origin",
+    "referrer-policy": "same-origin",
+    "cross-origin-opener-policy": "same-origin",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "default-src 'self'; img-src 'self' data: 'unsafe-eval' *.gov www.google-analytics.com www.googletagmanager.com stats.g.doubleclick.net ajax.googleapis.com; style-src 'self' 'unsafe-inline' ajax.googleapis.com; font-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' script.crazyegg.com siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com www.google-analytics.com www.googletagmanager.com ajax.googleapis.com www.accessdata.fda.gov www.nlm.nih.gov *.addthis.com *.addthisedge.com dap.digitalgov.gov; connect-src 'self' *.nlm.nih.gov www.google-analytics.com stats.g.doubleclick.net siteintercept.qualtrics.com zn0ojdzesiqbhitcx-nlmenterprise.siteintercept.qualtrics.com ajax.googleapis.com www.accessdata.fda.gov *.addthis.com *.addthisedge.com; object-src 'none'; frame-src 'self' www.googletagmanager.com *.addthis.com; report-uri https://nlmoccs.report-uri.com/r/d/csp/reportOnly",
+    "x-powered-by": "Phusion Passenger(R)",
+    "server": "nginx + Phusion Passenger(R)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+  },
+  "zip_sha256": "6c8115daff54ed4468046908fcfc894a45895d1f43ef252032c4d6fc6191f2e6",
+  "xml_sha256": "867890dff8f72ce3ab6385f1a6acef2b67b0ee1e58ed06a8375fd2cc0c917ddb",
+  "xml_member_name": "831e90e7-4cd9-44e1-8f94-b136bcba2b5b.xml"
+}

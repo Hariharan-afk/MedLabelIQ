@@ -1,0 +1,38 @@
+{
+  "data": {
+    "spl": {
+      "title": "SERTRALINE HYDROCHLORIDE TABLET, FILM COATED [GRANULES PHARMACEUTICALS INC.]",
+      "setid": "98960cc1-1d44-4d89-b415-7e250cc762cc"
+    },
+    "history": [
+      {
+        "spl_version": 4,
+        "published_date": "Apr 09, 2026"
+      },
+      {
+        "spl_version": 3,
+        "published_date": "Dec 05, 2025"
+      },
+      {
+        "spl_version": 2,
+        "published_date": "Nov 11, 2024"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "May 15, 2023"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/98960cc1-1d44-4d89-b415-7e250cc762cc/history.json",
+    "next_page_url": "null",
+    "total_elements": 4,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}

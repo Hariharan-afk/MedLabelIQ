@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -29,8 +30,11 @@ DEFAULT_API_BASE_URL = os.getenv(
     "http://127.0.0.1:8011",
 )
 
-DRUG_OPTIONS = [
-    "No drug filter",
+NO_DRUG_FILTER = "No drug filter"
+NO_FAMILY_FILTER = "No section-family filter"
+
+FALLBACK_DRUG_OPTIONS = [
+    NO_DRUG_FILTER,
     "acetaminophen",
     "albuterol",
     "amoxicillin",
@@ -45,8 +49,8 @@ DRUG_OPTIONS = [
     "sertraline",
 ]
 
-FAMILY_OPTIONS = [
-    "No section-family filter",
+FALLBACK_FAMILY_OPTIONS = [
+    NO_FAMILY_FILTER,
     "warnings_and_precautions",
     "warnings",
     "boxed_warning",
@@ -77,7 +81,7 @@ EXAMPLE_QUESTIONS = [
         "label": "Apixaban abstention",
         "query": "Does apixaban treat bacterial infections?",
         "drug": "apixaban",
-        "family": "No section-family filter",
+        "family": NO_FAMILY_FILTER,
     },
     {
         "label": "Albuterol risk",
@@ -110,14 +114,6 @@ st.markdown(
         .hero-subtitle {
             font-size: 1.02rem;
             opacity: 0.78;
-            margin-bottom: 1.25rem;
-        }
-
-        .hero-card {
-            padding: 1.1rem 1.2rem;
-            border-radius: 1rem;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.03);
             margin-bottom: 1.25rem;
         }
 
@@ -239,6 +235,20 @@ st.markdown(
             margin-bottom: 0.65rem;
         }
 
+        .corpus-card {
+            padding: 0.82rem 0.85rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 0.7rem;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .corpus-card strong {
+            font-weight: 700;
+        }
+
         .recent-query {
             padding: 0.62rem 0.7rem;
             border-radius: 0.72rem;
@@ -276,10 +286,10 @@ if "debug_query_input" not in st.session_state:
     st.session_state.debug_query_input = ""
 
 if "selected_drug" not in st.session_state:
-    st.session_state.selected_drug = "No drug filter"
+    st.session_state.selected_drug = NO_DRUG_FILTER
 
 if "selected_family" not in st.session_state:
-    st.session_state.selected_family = "No section-family filter"
+    st.session_state.selected_family = NO_FAMILY_FILTER
 
 if "top_k" not in st.session_state:
     st.session_state.top_k = 5
@@ -309,11 +319,11 @@ def normalize_api_base_url(url: str) -> str:
 
 
 def optional_drug(value: str) -> str | None:
-    return None if value == "No drug filter" else value
+    return None if value == NO_DRUG_FILTER else value
 
 
 def optional_family(value: str) -> str | None:
-    return None if value == "No section-family filter" else value
+    return None if value == NO_FAMILY_FILTER else value
 
 
 def get_json_error_detail(response: httpx.Response) -> str:
@@ -325,6 +335,37 @@ def get_json_error_detail(response: httpx.Response) -> str:
     except Exception:
         return response.text
 
+
+def safe_set_selected_option(
+    *,
+    key: str,
+    allowed_options: list[str],
+    fallback: str,
+) -> None:
+    current_value = st.session_state.get(key, fallback)
+
+    if current_value not in allowed_options:
+        st.session_state[key] = fallback
+
+
+def humanize_family_name(value: str) -> str:
+    return value.replace("_", " ").title()
+
+
+def format_optional_timestamp(value: str | None) -> str:
+    if not value:
+        return "Not recorded"
+
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed.strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        return value
+
+
+# =============================================================================
+# Metadata / health API calls
+# =============================================================================
 
 @st.cache_data(ttl=15, show_spinner=False)
 def fetch_health(api_base_url: str) -> dict[str, Any]:
@@ -344,6 +385,90 @@ def fetch_health(api_base_url: str) -> dict[str, Any]:
             "error": f"{type(exc).__name__}: {exc}",
         }
 
+
+@st.cache_data(ttl=30, show_spinner=False)
+def fetch_drugs(api_base_url: str) -> dict[str, Any]:
+    try:
+        with httpx.Client(timeout=8.0) as client:
+            response = client.get(f"{api_base_url}/drugs")
+            response.raise_for_status()
+
+        payload = response.json()
+
+        dynamic_options = [
+            item["concept_name"]
+            for item in payload.get("drugs", [])
+            if item.get("concept_name")
+        ]
+
+        return {
+            "ok": True,
+            "payload": payload,
+            "options": [NO_DRUG_FILTER, *dynamic_options],
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "payload": None,
+            "options": FALLBACK_DRUG_OPTIONS,
+        }
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def fetch_families(api_base_url: str) -> dict[str, Any]:
+    try:
+        with httpx.Client(timeout=8.0) as client:
+            response = client.get(f"{api_base_url}/families")
+            response.raise_for_status()
+
+        payload = response.json()
+
+        dynamic_options = [
+            item["retrieval_family"]
+            for item in payload.get("families", [])
+            if item.get("retrieval_family")
+        ]
+
+        return {
+            "ok": True,
+            "payload": payload,
+            "options": [NO_FAMILY_FILTER, *dynamic_options],
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "payload": None,
+            "options": FALLBACK_FAMILY_OPTIONS,
+        }
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def fetch_corpus_stats(api_base_url: str) -> dict[str, Any]:
+    try:
+        with httpx.Client(timeout=8.0) as client:
+            response = client.get(f"{api_base_url}/corpus/stats")
+            response.raise_for_status()
+
+        return {
+            "ok": True,
+            "payload": response.json(),
+        }
+
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "payload": None,
+        }
+
+
+# =============================================================================
+# QA / retrieval API calls
+# =============================================================================
 
 def call_answer_api(
     *,
@@ -419,6 +544,10 @@ def call_retrieval_debug_api(
     return result
 
 
+# =============================================================================
+# Presentation helpers
+# =============================================================================
+
 def add_recent_query(
     *,
     query: str,
@@ -428,11 +557,39 @@ def add_recent_query(
     item = {
         "query": query,
         "status": answer_status,
-        "drug": drug or "No drug filter",
+        "drug": drug or NO_DRUG_FILTER,
     }
 
     st.session_state.recent_queries.insert(0, item)
     st.session_state.recent_queries = st.session_state.recent_queries[:6]
+
+def load_example_question(
+    *,
+    query: str,
+    drug: str,
+    family: str,
+    drug_options: list[str],
+    family_options: list[str],
+) -> None:
+    """
+    Load an example prompt and synchronize sidebar filters safely.
+
+    This runs as a Streamlit widget callback, so session-state updates happen
+    before the selectbox widgets are re-instantiated on the next rerun.
+    """
+    st.session_state.query_input = query
+
+    st.session_state.selected_drug = (
+        drug
+        if drug in drug_options
+        else NO_DRUG_FILTER
+    )
+
+    st.session_state.selected_family = (
+        family
+        if family in family_options
+        else NO_FAMILY_FILTER
+    )
 
 
 def pill(label: str, class_name: str) -> str:
@@ -474,6 +631,56 @@ def render_sidebar_health(api_base_url: str) -> None:
 
     with st.sidebar.expander("Detailed health payload"):
         st.json(payload)
+
+
+def render_sidebar_corpus_stats(api_base_url: str) -> None:
+    st.sidebar.markdown("### Corpus snapshot")
+
+    stats_result = fetch_corpus_stats(api_base_url)
+
+    if not stats_result["ok"]:
+        st.sidebar.warning("Corpus stats unavailable")
+        st.sidebar.caption(stats_result["error"])
+        return
+
+    payload = stats_result["payload"]
+    latest_build = payload.get("latest_build") or {}
+
+    built_at_display = format_optional_timestamp(
+        latest_build.get("built_at")
+    )
+
+    st.sidebar.markdown(
+        f"""
+        <div class="corpus-card">
+            <strong>Drugs:</strong> {payload.get("drug_count", "—")}<br/>
+            <strong>Sections:</strong> {payload.get("section_count", "—")}<br/>
+            <strong>Chunks:</strong> {payload.get("chunk_count", "—")}<br/>
+            <strong>Qdrant points:</strong> {payload.get("qdrant_point_count", "—")}<br/>
+            <strong>Latest build:</strong> {built_at_display}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.sidebar.expander("Detailed corpus stats"):
+        st.json(payload)
+
+
+def render_filter_metadata_notes(
+    *,
+    drugs_result: dict[str, Any],
+    families_result: dict[str, Any],
+) -> None:
+    if not drugs_result["ok"]:
+        st.sidebar.caption(
+            "Using fallback drug filters because `/drugs` is unavailable."
+        )
+
+    if not families_result["ok"]:
+        st.sidebar.caption(
+            "Using fallback family filters because `/families` is unavailable."
+        )
 
 
 def render_recent_queries() -> None:
@@ -584,8 +791,8 @@ def render_answer_payload(payload: dict[str, Any]) -> None:
 
     st.markdown("".join(pill_html), unsafe_allow_html=True)
 
-    active_drug = payload.get("drug") or "No drug filter"
-    active_family = payload.get("family") or "No section-family filter"
+    active_drug = payload.get("drug") or NO_DRUG_FILTER
+    active_family = payload.get("family") or NO_FAMILY_FILTER
 
     st.markdown(
         f"""
@@ -717,24 +924,57 @@ api_base_url = normalize_api_base_url(
     )
 )
 
-if st.sidebar.button("Refresh health", use_container_width=True):
+if st.sidebar.button("Refresh backend metadata", use_container_width=True):
     fetch_health.clear()
+    fetch_drugs.clear()
+    fetch_families.clear()
+    fetch_corpus_stats.clear()
+    st.rerun()
 
 render_sidebar_health(api_base_url)
+render_sidebar_corpus_stats(api_base_url)
+
+drugs_result = fetch_drugs(api_base_url)
+families_result = fetch_families(api_base_url)
+
+drug_options = drugs_result["options"]
+family_options = families_result["options"]
+
+safe_set_selected_option(
+    key="selected_drug",
+    allowed_options=drug_options,
+    fallback=NO_DRUG_FILTER,
+)
+
+safe_set_selected_option(
+    key="selected_family",
+    allowed_options=family_options,
+    fallback=NO_FAMILY_FILTER,
+)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Retrieval filters")
 
 st.sidebar.selectbox(
     "Drug concept",
-    DRUG_OPTIONS,
+    drug_options,
     key="selected_drug",
 )
 
 st.sidebar.selectbox(
     "Section family",
-    FAMILY_OPTIONS,
+    family_options,
     key="selected_family",
+    format_func=(
+        lambda value: value
+        if value == NO_FAMILY_FILTER
+        else humanize_family_name(value)
+    ),
+)
+
+render_filter_metadata_notes(
+    drugs_result=drugs_result,
+    families_result=families_result,
 )
 
 st.sidebar.slider(
@@ -838,15 +1078,19 @@ with ask_tab:
 
     for idx, example in enumerate(EXAMPLE_QUESTIONS):
         with example_cols[idx]:
-            if st.button(
+            st.button(
                 example["label"],
                 key=f"example_{idx}",
                 use_container_width=True,
-            ):
-                st.session_state.query_input = example["query"]
-                st.session_state.selected_drug = example["drug"]
-                st.session_state.selected_family = example["family"]
-                st.rerun()
+                on_click=load_example_question,
+                kwargs={
+                    "query": example["query"],
+                    "drug": example["drug"],
+                    "family": example["family"],
+                    "drug_options": drug_options,
+                    "family_options": family_options,
+                },
+            )
 
     st.markdown("### Ask a medication-label question")
 

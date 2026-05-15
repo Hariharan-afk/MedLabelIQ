@@ -1,0 +1,34 @@
+{
+  "data": {
+    "spl": {
+      "title": "ATORVASTATIN CALCIUM TABLET, FILM COATED [AUROBINDO PHARMA LIMITED]",
+      "setid": "536b5e0d-1bb9-4c9d-a588-460d7647308b"
+    },
+    "history": [
+      {
+        "spl_version": 3,
+        "published_date": "Feb 05, 2026"
+      },
+      {
+        "spl_version": 2,
+        "published_date": "Apr 26, 2024"
+      },
+      {
+        "spl_version": 1,
+        "published_date": "Feb 21, 2024"
+      }
+    ]
+  },
+  "metadata": {
+    "db_published_date": "May 07, 2026 08:01:51PM EST",
+    "elements_per_page": 100,
+    "current_url": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/536b5e0d-1bb9-4c9d-a588-460d7647308b/history.json",
+    "next_page_url": "null",
+    "total_elements": 3,
+    "total_pages": 1,
+    "current_page": 1,
+    "previous_page": "null",
+    "previous_page_url": "null",
+    "next_page": "null"
+  }
+}
