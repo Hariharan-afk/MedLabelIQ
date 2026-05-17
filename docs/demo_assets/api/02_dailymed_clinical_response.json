@@ -1,0 +1,139 @@
+﻿{
+    "query":  "Can apixaban be taken with aspirin?",
+    "resolved_drug":  "apixaban",
+    "planned_family":  "drug_interactions",
+    "planned_source":  "dailymed_label",
+    "request_log_id":  "d28d12e8-dca9-4cad-bccd-695c93b689b3",
+    "result":  {
+                   "status":  "answered",
+                   "answer":  "Apixaban can be coâadministered with aspirin, but the label notes that this combination increases the risk of bleeding and should be used with caution.",
+                   "citations":  [
+                                     "E1"
+                                 ],
+                   "evidence_summary":  "The drugâinteraction section states that coâadministration of aspirin with apixaban raises bleeding risk, as shown in clinical trials (APPRAISEâ2, ARISTOTLE) where bleeding rates were higher with aspirin use.",
+                   "safety_note":  "This answer summarizes retrieved drug-label evidence and is not a substitute for advice from a qualified clinician or pharmacist."
+               },
+    "evidence":  [
+                     {
+                         "evidence_id":  "E1",
+                         "chunk_id":  "ee4493ab-9036-5c6c-a65a-b6a81f7972b1",
+                         "section_id":  "49fe2615-a947-542d-bd5b-222974927aa1",
+                         "drug":  "apixaban",
+                         "retrieval_family":  "drug_interactions",
+                         "canonical_section_name":  "drug_interactions",
+                         "nearest_canonical_section_name":  "drug_interactions",
+                         "heading":  "7 DRUG INTERACTIONS \u003e 7.3 Anticoagulants and Antiplatelet Agents",
+                         "set_id":  "19a60552-374d-4b8b-a8ce-ceae252ea5ba",
+                         "version_number":  16,
+                         "source_label":  "DailyMed SET ID 19a60552-374d-4b8b-a8ce-ceae252ea5ba, SPL version 16",
+                         "chunk_text":  "Co-administration of antiplatelet agents, fibrinolytics, heparin, aspirin, and chronic NSAID use increases the risk of bleeding. APPRAISE-2, a placebo-controlled clinical trial of apixaban in high-risk, post-acute coronary syndrome patients treated with aspirin or the combination of aspirin and clopidogrel, was terminated early due to a higher rate of bleeding with apixaban compared to placebo. The rate of ISTH major bleeding was 2.8% per year with apixaban versus 0.6% per year with placebo in patients receiving single antiplatelet therapy and was 5.9% per year with apixaban versus 2.5% per year with placebo in those receiving dual antiplatelet therapy. In ARISTOTLE, concomitant use of aspirin increased the bleeding risk on apixaban from 1.8% per year to 3.4% per year and concomitant use of aspirin and warfarin increased the bleeding risk from 2.7% per year to 4.6% per year. In this clinical trial, there was limited (2.3%) use of dual antiplatelet therapy with apixaban.",
+                         "hybrid_score":  0.01639344262295082,
+                         "dense_rank":  1
+                     },
+                     {
+                         "evidence_id":  "E2",
+                         "chunk_id":  "98f67811-6bd4-518a-afc7-0d2c761d7589",
+                         "section_id":  "45639915-0194-5731-92cb-a4e9fa10f510",
+                         "drug":  "apixaban",
+                         "retrieval_family":  "drug_interactions",
+                         "canonical_section_name":  "drug_interactions",
+                         "nearest_canonical_section_name":  "drug_interactions",
+                         "heading":  "7 DRUG INTERACTIONS \u003e 7.1 Combined P-gp and Strong CYP3A4 Inhibitors",
+                         "set_id":  "19a60552-374d-4b8b-a8ce-ceae252ea5ba",
+                         "version_number":  16,
+                         "source_label":  "DailyMed SET ID 19a60552-374d-4b8b-a8ce-ceae252ea5ba, SPL version 16",
+                         "chunk_text":  "For patients receiving apixaban 5 mg or 10 mg twice daily, the dose of apixaban should be decreased by 50% when co-administered with drugs that are combined P-gp and strong CYP3A4 inhibitors (e.g., ketoconazole, itraconazole, ritonavir) [see Dosage and Administration (2.5) and Clinical Pharmacology (12.3) ] . For patients receiving apixaban at a dose of 2.5 mg twice daily, avoid co-administration with combined P-gp and strong CYP3A4 inhibitors [see Dosage and Administration (2.5) and Clinical Pharmacology (12.3) ] . Clarithromycin Although clarithromycin is a combined P-gp and strong CYP3A4 inhibitor, pharmacokinetic data suggest that no dose adjustment is necessary with concomitant administration with apixaban [see Clinical Pharmacology (12.3)].",
+                         "hybrid_score":  0.016129032258064516,
+                         "dense_rank":  2
+                     },
+                     {
+                         "evidence_id":  "E3",
+                         "chunk_id":  "c765fd87-9bdd-5b6c-a8c0-f869b3bec668",
+                         "section_id":  "745b263f-bf32-50ad-a0f4-ffdb78298062",
+                         "drug":  "apixaban",
+                         "retrieval_family":  "drug_interactions",
+                         "canonical_section_name":  "drug_interactions",
+                         "nearest_canonical_section_name":  "drug_interactions",
+                         "heading":  "7 DRUG INTERACTIONS",
+                         "set_id":  "19a60552-374d-4b8b-a8ce-ceae252ea5ba",
+                         "version_number":  16,
+                         "source_label":  "DailyMed SET ID 19a60552-374d-4b8b-a8ce-ceae252ea5ba, SPL version 16",
+                         "chunk_text":  "Apixaban is a substrate of both CYP3A4 and P-gp. Inhibitors of CYP3A4 and P-gp increase exposure to apixaban and increase the risk of bleeding. Inducers of CYP3A4 and P-gp decrease exposure to apixaban and increase the risk of stroke and other thromboembolic events.",
+                         "hybrid_score":  0.015873015873015872,
+                         "dense_rank":  3
+                     },
+                     {
+                         "evidence_id":  "E4",
+                         "chunk_id":  "004b377c-f12f-51a3-97e6-36cd569a0b5c",
+                         "section_id":  "7fea266d-5b95-5d6d-a4b7-d1c7b709a385",
+                         "drug":  "apixaban",
+                         "retrieval_family":  "drug_interactions",
+                         "canonical_section_name":  "drug_interactions",
+                         "nearest_canonical_section_name":  "drug_interactions",
+                         "heading":  "7 DRUG INTERACTIONS \u003e 7.2 Combined P-gp and Strong CYP3A4 Inducers",
+                         "set_id":  "19a60552-374d-4b8b-a8ce-ceae252ea5ba",
+                         "version_number":  16,
+                         "source_label":  "DailyMed SET ID 19a60552-374d-4b8b-a8ce-ceae252ea5ba, SPL version 16",
+                         "chunk_text":  "Avoid concomitant use of apixaban with combined P-gp and strong CYP3A4 inducers (e.g., rifampin, carbamazepine, phenytoin, St. Johnâs wort) because such drugs will decrease exposure to apixaban [see Clinical Pharmacology (12.3) ] .",
+                         "hybrid_score":  0.015625,
+                         "dense_rank":  4
+                     }
+                 ],
+    "diagnostics":  {
+                        "evidence_count":  4,
+                        "proposed_status":  "answered",
+                        "verification_enabled":  true,
+                        "verification":  {
+                                             "verdict":  "supported",
+                                             "rationale":  "The cited label text explicitly states that coâadministration of aspirin with apixaban increases bleeding risk, which directly supports the answer that they can be taken together but with caution due to higher bleeding risk.",
+                                             "cited_evidence_used":  [
+                                                                         "E1"
+                                                                     ]
+                                         },
+                        "verification_overrode_answer":  false,
+                        "guardrail_triggered":  false,
+                        "drug_resolution":  {
+                                                "status":  "not_requested",
+                                                "corpus_matches":  [
+
+                                                                   ]
+                                            },
+                        "drug_mention_detection":  {
+                                                       "status":  "direct_corpus_mention",
+                                                       "detected_mention":  "apixaban",
+                                                       "retrieval_drug":  "apixaban",
+                                                       "corpus_matches":  [
+                                                                              "apixaban"
+                                                                          ]
+                                                   },
+                        "family_plan":  {
+                                            "status":  "routed_single_family",
+                                            "intent":  "interaction",
+                                            "planned_family":  "drug_interactions",
+                                            "candidate_families":  [
+                                                                       "drug_interactions"
+                                                                   ],
+                                            "matches":  [
+                                                            {
+                                                                "family":  "drug_interactions",
+                                                                "intent":  "interaction",
+                                                                "score":  4,
+                                                                "matched_signals":  [
+                                                                                        "taken with"
+                                                                                    ]
+                                                            }
+                                                        ]
+                                        },
+                        "source_plan":  {
+                                            "status":  "routed_dailymed_label",
+                                            "selected_source":  "dailymed_label",
+                                            "intent":  "interaction",
+                                            "candidate_sources":  [
+                                                                      "dailymed_label"
+                                                                  ],
+                                            "matches":  [
+
+                                                        ]
+                                        }
+                    }
+}

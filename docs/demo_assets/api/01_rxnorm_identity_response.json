@@ -1,0 +1,129 @@
+﻿{
+    "query":  "Is Eliquis the same as apixaban?",
+    "resolved_drug":  "apixaban",
+    "planned_source":  "rxnorm_identity",
+    "request_log_id":  "f8f559fb-3a40-4554-8e3c-11e50911a47d",
+    "result":  {
+                   "status":  "answered",
+                   "answer":  "Yes. RxNorm maps Eliquis and apixaban to the same ingredient concept: apixaban.",
+                   "citations":  [
+                                     "R1",
+                                     "R2"
+                                 ],
+                   "evidence_summary":  "The two RxNorm term resolutions share at least one ingredient RxCUI, supporting a same-ingredient identity relationship.",
+                   "safety_note":  "This answer summarizes RxNorm medication identity relationships and is not a substitute for advice from a qualified clinician or pharmacist."
+               },
+    "evidence":  [
+
+                 ],
+    "identity_evidence":  [
+                              {
+                                  "evidence_id":  "R1",
+                                  "term":  "Eliquis",
+                                  "resolution_status":  "resolved",
+                                  "selected_candidate":  {
+                                                             "rxcui":  "1364436",
+                                                             "name":  "Eliquis",
+                                                             "synonym":  "",
+                                                             "tty":  "BN",
+                                                             "match_method":  "exact_or_normalized"
+                                                         },
+                                  "related_ingredients":  [
+                                                              {
+                                                                  "rxcui":  "1364430",
+                                                                  "name":  "apixaban",
+                                                                  "synonym":  "",
+                                                                  "tty":  "IN"
+                                                              }
+                                                          ],
+                                  "related_brands":  [
+                                                         {
+                                                             "rxcui":  "1364436",
+                                                             "name":  "Eliquis",
+                                                             "synonym":  "",
+                                                             "tty":  "BN",
+                                                             "match_method":  "exact_or_normalized"
+                                                         }
+                                                     ],
+                                  "summary":  "RxNorm resolved \u0027Eliquis\u0027 to Eliquis (BN, RxCUI 1364436). Related ingredient concept(s): apixaban. Related brand concept(s): Eliquis."
+                              },
+                              {
+                                  "evidence_id":  "R2",
+                                  "term":  "apixaban",
+                                  "resolution_status":  "resolved",
+                                  "selected_candidate":  {
+                                                             "rxcui":  "1364430",
+                                                             "name":  "apixaban",
+                                                             "synonym":  "",
+                                                             "tty":  "IN",
+                                                             "match_method":  "exact_or_normalized"
+                                                         },
+                                  "related_ingredients":  [
+                                                              {
+                                                                  "rxcui":  "1364430",
+                                                                  "name":  "apixaban",
+                                                                  "synonym":  "",
+                                                                  "tty":  "IN",
+                                                                  "match_method":  "exact_or_normalized"
+                                                              }
+                                                          ],
+                                  "related_brands":  [
+                                                         {
+                                                             "rxcui":  "1364436",
+                                                             "name":  "Eliquis",
+                                                             "synonym":  "",
+                                                             "tty":  "BN"
+                                                         }
+                                                     ],
+                                  "summary":  "RxNorm resolved \u0027apixaban\u0027 to apixaban (IN, RxCUI 1364430). Related ingredient concept(s): apixaban. Related brand concept(s): Eliquis."
+                              }
+                          ],
+    "diagnostics":  {
+                        "evidence_count":  0,
+                        "proposed_status":  "answered",
+                        "verification_enabled":  true,
+                        "verification_overrode_answer":  false,
+                        "guardrail_triggered":  false,
+                        "drug_resolution":  {
+                                                "status":  "not_requested",
+                                                "corpus_matches":  [
+
+                                                                   ]
+                                            },
+                        "drug_mention_detection":  {
+                                                       "status":  "direct_corpus_mention",
+                                                       "detected_mention":  "apixaban",
+                                                       "retrieval_drug":  "apixaban",
+                                                       "corpus_matches":  [
+                                                                              "apixaban"
+                                                                          ]
+                                                   },
+                        "family_plan":  {
+                                            "status":  "no_route_detected",
+                                            "candidate_families":  [
+
+                                                                   ],
+                                            "matches":  [
+
+                                                        ]
+                                        },
+                        "source_plan":  {
+                                            "status":  "routed_rxnorm_identity",
+                                            "selected_source":  "rxnorm_identity",
+                                            "intent":  "brand_generic_equivalence",
+                                            "candidate_sources":  [
+                                                                      "rxnorm_identity"
+                                                                  ],
+                                            "matches":  [
+                                                            {
+                                                                "source":  "rxnorm_identity",
+                                                                "intent":  "brand_generic_equivalence",
+                                                                "score":  6,
+                                                                "matched_signals":  [
+                                                                                        "same as"
+                                                                                    ]
+                                                            }
+                                                        ]
+                                        }
+                    }
+}
