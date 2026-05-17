@@ -118,14 +118,15 @@ st.markdown(
     """
     <style>
         .block-container {
-            padding-top: 1.8rem;
+            padding-top: 3.25rem;
             padding-bottom: 3rem;
         }
 
         .hero-title {
             font-size: 2.4rem;
             font-weight: 800;
-            line-height: 1.1;
+            line-height: 1.15;
+            margin-top: 0.25rem;
             margin-bottom: 0.3rem;
         }
 
