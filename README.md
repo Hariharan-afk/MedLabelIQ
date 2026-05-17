@@ -20,6 +20,14 @@ MedLabelIQ was designed as a modern replacement for an earlier web-scraped medic
 
 ---
 
+## Full Technical Documentation
+
+For a detailed project walkthrough, UI demonstrations, API examples, evaluation proof, and observability analysis, see:
+
+[MedLabelIQ Comprehensive Documentation](docs/MEDLABELIQ_COMPREHENSIVE_DOCUMENTATION.md)
+
+---
+
 ## Key Capabilities
 
 ### 1. Multi-Knowledge-Source QA
